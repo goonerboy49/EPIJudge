@@ -6,7 +6,7 @@
  * function.
  */
 
-#if _WINDOWS || __MINGW32__ || __CYGWIN__
+#if _WINDOWS
 #define PLATFORM_WIN
 #endif
 
