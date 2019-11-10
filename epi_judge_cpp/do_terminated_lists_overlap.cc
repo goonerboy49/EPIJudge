@@ -5,9 +5,41 @@
 #include "test_framework/timed_executor.h"
 using std::shared_ptr;
 
+using ListNodePtr = shared_ptr<ListNode<int>>;
+
+int GetLength(ListNodePtr l) {
+  int len = 0;
+  while(l) {
+    l = l->next;
+    ++len;
+  }
+  return len;
+}
+
+void AdvanceListPtr(ListNodePtr& l, int k) {
+  while(k) {
+    l = l->next;
+    --k;
+  }
+}
+
 shared_ptr<ListNode<int>> OverlappingNoCycleLists(
     shared_ptr<ListNode<int>> l0, shared_ptr<ListNode<int>> l1) {
-  // TODO - you fill in here.
+  int l0Len = GetLength(l0);
+  int l1Len = GetLength(l1);
+  //std::cout << "List0 length " << l0Len << " List1 length " << l1Len << std::endl;
+
+  int diff = abs(l0Len - l1Len);
+  AdvanceListPtr(l0Len > l1Len ? l0 : l1, diff);
+
+  while(l0 && l1) {
+    if (l0 == l1) {
+      return l0;
+    }
+    l0 = l0->next;
+    l1 = l1->next;
+  }
+  
   return nullptr;
 }
 void OverlappingNoCycleListsWrapper(TimedExecutor& executor,

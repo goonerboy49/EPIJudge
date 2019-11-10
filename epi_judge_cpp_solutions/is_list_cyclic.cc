@@ -6,6 +6,7 @@
 #include "test_framework/timed_executor.h"
 
 using std::shared_ptr;
+using ListNodePtr = shared_ptr<ListNode<int>>;
 
 shared_ptr<ListNode<int>> HasCycle(const shared_ptr<ListNode<int>>& head) {
   shared_ptr<ListNode<int>> fast = head, slow = head;
