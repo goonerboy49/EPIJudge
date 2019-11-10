@@ -7,8 +7,33 @@ using std::string;
 using std::vector;
 
 int ReplaceAndRemove(int size, char s[]) {
-  // TODO - you fill in here.
-  return 0;
+  // Find the number of 'a's and replace the 'b's
+  int aCount = 0;
+  int writeIdx = 0;
+  for (int i = 0; i < size; i++) {
+    if (s[i] != 'b') {
+      s[writeIdx++] = s[i];
+    }
+
+    if (s[i] == 'a') {
+      aCount++;
+    }
+  }
+
+  int finalSize = writeIdx + aCount;
+  int currIdx = writeIdx-1;
+  writeIdx = finalSize-1;
+  while(currIdx >= 0) {
+    if (s[currIdx] == 'a') {
+      s[writeIdx--] = 'd';
+      s[writeIdx--] = 'd';
+    } else {
+      s[writeIdx--] = s[currIdx];
+    }
+
+    --currIdx;
+  }
+  return finalSize;
 }
 vector<string> ReplaceAndRemoveWrapper(TimedExecutor& executor, int size,
                                        const vector<string>& s) {
