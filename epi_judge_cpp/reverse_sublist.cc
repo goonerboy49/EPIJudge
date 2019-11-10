@@ -3,8 +3,27 @@
 
 shared_ptr<ListNode<int>> ReverseSublist(shared_ptr<ListNode<int>> L, int start,
                                          int finish) {
-  // TODO - you fill in here.
-  return nullptr;
+  // Traverse the list such that currHead is the start;
+  int s = 1;
+  shared_ptr<ListNode<int>> dummy = std::make_shared<ListNode<int>>(ListNode<int>(0, L));
+  shared_ptr<ListNode<int>> subListHead = dummy;
+  while(s < start) {
+    subListHead = subListHead->next;
+    ++s;
+  }
+
+  shared_ptr<ListNode<int>> prev = subListHead;
+  shared_ptr<ListNode<int>> curr = subListHead->next;
+
+  while(s < finish && curr) {
+    shared_ptr<ListNode<int>> temp = curr->next;
+    curr->next = temp->next;
+    temp->next = prev->next;
+    prev->next = temp;
+    s++;
+  }
+
+  return dummy->next;
 }
 
 int main(int argc, char* argv[]) {
