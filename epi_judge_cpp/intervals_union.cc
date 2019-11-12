@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <vector>
 #include "test_framework/generic_test.h"
 #include "test_framework/serialization_traits.h"
@@ -13,9 +14,43 @@ struct Interval {
   Endpoint left, right;
 };
 
-vector<Interval> UnionOfIntervals(vector<Interval> intervals) {
-  // TODO - you fill in here.
-  return {};
+vector<Interval> UnionOfIntervals(vector<Interval> intervals) { 
+  if (!intervals.size()) {
+    return {};
+  }
+
+  // sort the intervals by their start
+  auto cmp = [](const Interval& a, const Interval& b) {
+    if (a.left.val != b.left.val) {
+      return a.left.val < b.left.val;
+    }
+
+    return a.left.is_closed && !b.left.is_closed;
+  };
+
+  std::sort(intervals.begin(), intervals.end(), cmp);
+  
+  int idx = 0;
+  vector<Interval> retVal;
+  while(idx < intervals.size()) {
+    // Add intervals that do not overlap from the start.
+    auto& currInt = intervals[idx];
+    if (!retVal.empty() &&
+        (retVal.back().right.val > currInt.left.val ||
+         (retVal.back().right.val == currInt.left.val &&
+          (retVal.back().right.is_closed || currInt.left.is_closed)))) {
+          if (retVal.back().right.val < currInt.right.val ||
+              (retVal.back().right.val == currInt.right.val &&
+                currInt.right.is_closed)) {
+            retVal.back().right = currInt.right;
+          }
+    } else {
+      retVal.emplace_back(currInt);
+    }
+    ++idx;
+  }
+
+  return retVal;
 }
 struct FlatInterval {
   int left_val;
