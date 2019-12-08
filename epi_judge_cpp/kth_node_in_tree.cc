@@ -16,7 +16,23 @@ struct BinaryTreeNode {
 
 const BinaryTreeNode<int>* FindKthNodeBinaryTree(
     const unique_ptr<BinaryTreeNode<int>>& tree, int k) {
-  // TODO - you fill in here.
+  BinaryTreeNode<int> *node = tree.get();
+  if (node == nullptr) {
+    return nullptr;
+  }
+
+  while(node) {
+    int leftSize = node->left ? leftSize = node->left->size : 0;
+    if (leftSize + 1 < k) {
+      node = node->right.get();
+      k -= (leftSize + 1);
+    } else if (leftSize == k-1) {
+      return node;
+    } else {
+      node = node->left.get();
+    }
+  }
+  
   return nullptr;
 }
 template <typename KeyT>

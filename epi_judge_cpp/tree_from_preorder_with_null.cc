@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 #include "binary_tree_node.h"
@@ -6,10 +7,27 @@
 using std::string;
 using std::vector;
 
+unique_ptr<BinaryTreeNode<int>> ReconstructPreorderHelper(const vector<int*>& preorder, int *currIdx){
+  int *currKey = preorder[*currIdx];
+  int& currIdxRef = *currIdx;
+  currIdxRef++;
+
+  if (currKey == nullptr) {
+    return nullptr;
+  }
+
+  //std::cout << "Trying index " << currIdxRef << std::endl;
+  unique_ptr<BinaryTreeNode<int>> currNode = std::make_unique<BinaryTreeNode<int>>(*currKey);
+  currNode->left = std::move(ReconstructPreorderHelper(preorder, currIdx));
+  currNode->right = std::move(ReconstructPreorderHelper(preorder, currIdx));
+  return currNode;
+}
+
+
 unique_ptr<BinaryTreeNode<int>> ReconstructPreorder(
     const vector<int*>& preorder) {
-  // TODO - you fill in here.
-  return nullptr;
+    int currIdx = 0;
+    return ReconstructPreorderHelper(preorder, &currIdx);
 }
 unique_ptr<BinaryTreeNode<int>> ReconstructPreorderWrapper(
     TimedExecutor& executor, const vector<string>& preorder) {

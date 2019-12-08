@@ -13,8 +13,25 @@ struct BinaryTreeNode {
   explicit BinaryTreeNode(T data) : data(data){};
 };
 
+void RightSiblingInNextLevel(BinaryTreeNode<int>* node) {
+  while(node) {
+    if (node->left) {
+      node->left->next = node->right.get();
+    }
+
+    if (node->next && node->right) {
+      node->right->next = node->next->left.get();
+    }
+
+    node = node->next;
+  }
+}
+
 void ConstructRightSibling(BinaryTreeNode<int>* tree) {
-  // TODO - you fill in here.
+  while(tree && tree->left) {
+    RightSiblingInNextLevel(tree);
+    tree = tree->left.get();
+  }
   return;
 }
 template <>
