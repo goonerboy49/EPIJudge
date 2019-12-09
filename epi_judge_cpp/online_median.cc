@@ -18,6 +18,7 @@ vector<double> OnlineMedian(vector<int>::const_iterator sequence_begin,
       maxHeap.pop();
     }
 
+    // Add to the result
     retVal.push_back(maxHeap.size() == minHeap.size() ? 0.5 * (minHeap.top() + maxHeap.top()): minHeap.top());
     ++sequence_begin;
   }
