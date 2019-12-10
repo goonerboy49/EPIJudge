@@ -3,8 +3,25 @@
 using std::vector;
 
 bool MatrixSearch(const vector<vector<int>>& A, int x) {
-  // TODO - you fill in here.
-  return true;
+  int m = A.size();
+  if (!m) return false;
+
+  int n = A[0].size();
+
+  int currRow = 0;
+  int currCol = n-1;
+  while(currRow >= 0 && currRow < m && currCol >=0 && currCol < n) {
+    int nextElem = A[currRow][currCol];
+
+    if (x == nextElem) {
+      return true;
+    } else if (x > nextElem) {
+      ++currRow;
+    } else {
+      --currCol;
+    }
+  }
+  return false;
 }
 
 int main(int argc, char* argv[]) {
