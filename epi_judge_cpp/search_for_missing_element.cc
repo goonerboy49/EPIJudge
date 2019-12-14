@@ -8,8 +8,32 @@ struct DuplicateAndMissing {
 };
 
 DuplicateAndMissing FindDuplicateMissing(const vector<int>& A) {
-  // TODO - you fill in here.
-  return {0, 0};
+  // XOR all elements in the array with elements from 0 to A.size() - 1 gives the m ^ d value
+  int missing_xor_dupe = 0;
+  int i = 0;
+  for (int a : A) {
+    missing_xor_dupe = missing_xor_dupe ^ a;
+    missing_xor_dupe = missing_xor_dupe ^ i;
+    ++i;
+  }
+
+  // Find all elements whose least significant bit is set
+  int differ_bit = missing_xor_dupe & ~(missing_xor_dupe - 1);
+  int miss_or_dup = 0;
+  for (int i = 0; i < A.size(); i++) {
+    if (i & differ_bit) {
+      miss_or_dup = miss_or_dup ^ i;
+    }
+
+    if (A[i] & differ_bit) {
+      miss_or_dup = miss_or_dup ^ A[i];
+    }
+  }
+
+  if (std::find(A.begin(), A.end(), miss_or_dup) != A.end()) {
+    return {miss_or_dup, miss_or_dup ^ missing_xor_dupe};
+  } 
+  return {miss_or_dup ^ missing_xor_dupe, miss_or_dup};
 }
 template <>
 struct SerializationTraits<DuplicateAndMissing>
