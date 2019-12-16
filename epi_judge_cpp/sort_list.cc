@@ -3,8 +3,25 @@
 #include "test_framework/generic_test.h"
 
 shared_ptr<ListNode<int>> StableSortList(shared_ptr<ListNode<int>> L) {
-  // TODO - you fill in here.
-  return nullptr;
+  auto dummy = std::make_shared<ListNode<int>>(ListNode<int>{0, L});
+  auto iter = L;
+
+  while(iter && iter->next) {
+    if (iter->data > iter->next->data) {
+      auto pre = dummy;
+      auto target = iter->next;
+      while(pre->next->data < target->data) {
+        pre = pre->next;
+      }
+      auto temp = pre->next;
+      pre->next = target;
+      iter->next = target->next;
+      target->next = temp;
+    } else {
+      iter = iter->next;
+    }
+  }
+  return dummy->next;
 }
 
 int main(int argc, char* argv[]) {

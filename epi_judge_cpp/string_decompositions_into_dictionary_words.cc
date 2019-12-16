@@ -4,8 +4,20 @@
 using std::string;
 using std::vector;
 
+using WordFreqMap = std::unordered_map<string, int>;
+
+bool IsMatch(const string& s, int startIdx, int unitSize, int numWords, WordFreqMap& freqMap) {
+
+  for(int i = 0; i < numWords; i++) {
+    auto currWord = s.substr(startIdx + i * unitSize, unitSize);
+    auto iter = freqMap.find(currWord);
+  }
+
+}
+
+
 vector<int> FindAllSubstrings(const string& s, const vector<string>& words) {
-  // TODO - you fill in here.
+  
   return {};
 }
 

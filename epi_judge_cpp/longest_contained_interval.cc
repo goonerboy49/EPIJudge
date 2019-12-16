@@ -3,8 +3,28 @@
 using std::vector;
 
 int LongestContainedRange(const vector<int>& A) {
-  // TODO - you fill in here.
-  return 0;
+  std::unordered_set<int> ASet(std::begin(A), std::end(A));
+  
+  int maxLen = 0;
+  while(!ASet.empty()) {
+    int a = *ASet.begin();
+    ASet.erase(a);
+
+    int lower = a - 1;
+    while(ASet.count(lower)) {
+      ASet.erase(lower);
+      --lower;
+    }
+
+    int upper = a + 1;
+    while(ASet.count(upper)) {
+      ASet.erase(upper);
+      ++upper;
+    }
+    maxLen = std::max(maxLen, upper - lower - 1);
+  }
+
+  return maxLen;
 }
 
 int main(int argc, char* argv[]) {
