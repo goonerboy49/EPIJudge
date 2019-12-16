@@ -4,9 +4,27 @@
 using std::string;
 using std::vector;
 
+void GenerateBalancedParenthesesInt(int numLeftNeeded, int numRightNeeded, const std::string& prefix, vector<string>& ans)
+{
+  if (!numRightNeeded) {
+    ans.push_back(prefix);
+    return;
+  }
+
+  if (numLeftNeeded > 0) {
+    GenerateBalancedParenthesesInt(numLeftNeeded - 1, numRightNeeded, prefix + "(", ans);
+  }
+
+  if (numLeftNeeded < numRightNeeded) {
+    GenerateBalancedParenthesesInt(numLeftNeeded, numRightNeeded - 1, prefix + ")", ans);
+  }
+}
+
+
 vector<string> GenerateBalancedParentheses(int num_pairs) {
-  // TODO - you fill in here.
-  return {};
+  vector<string> ans;
+  GenerateBalancedParenthesesInt(num_pairs, num_pairs, "", ans);
+  return ans;
 }
 
 int main(int argc, char* argv[]) {

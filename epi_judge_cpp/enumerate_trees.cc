@@ -6,9 +6,30 @@
 #include "test_framework/timed_executor.h"
 using std::vector;
 
+unique_ptr<BinaryTreeNode<int>> Clone (const unique_ptr<BinaryTreeNode<int>>& tree) {
+  return tree ? std::make_unique<BinaryTreeNode<int>>(0, Clone(tree->left), Clone(tree->right)) : nullptr;
+}
+
 vector<unique_ptr<BinaryTreeNode<int>>> GenerateAllBinaryTrees(int num_nodes) {
-  // TODO - you fill in here.
-  return {};
+  vector<unique_ptr<BinaryTreeNode<int>>> retVal;
+
+  if (num_nodes == 0) {
+    retVal.emplace_back(nullptr);
+  }
+
+  for (int numLeftNodes = 0; numLeftNodes < num_nodes; ++numLeftNodes) {
+    int numRightNodes = num_nodes - 1 - numLeftNodes;
+
+    auto leftTrees = GenerateAllBinaryTrees(numLeftNodes);
+    auto rightTrees = GenerateAllBinaryTrees(numRightNodes);
+
+    for (auto& left : leftTrees) {
+      for (auto& right : rightTrees) {
+        retVal.emplace_back(std::make_unique<BinaryTreeNode<int>>(0, Clone(left), Clone(right)));
+      }
+    }
+  }
+  return retVal;
 }
 vector<int> SerializeStructure(const unique_ptr<BinaryTreeNode<int>>& tree) {
   vector<int> result;

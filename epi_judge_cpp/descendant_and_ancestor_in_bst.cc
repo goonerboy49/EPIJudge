@@ -5,12 +5,39 @@
 #include "test_framework/timed_executor.h"
 using std::unique_ptr;
 
+bool SearchPath(const unique_ptr<BstNode<int>>& from, const unique_ptr<BstNode<int>>& to) {
+  BstNode<int> *iter = from.get();
+
+  while(iter && iter != to.get()) {
+    iter = iter->data > to->data ? iter->left.get() : iter->right.get();
+  }
+
+  return iter == to.get();
+}
+
 bool PairIncludesAncestorAndDescendantOfM(
     const unique_ptr<BstNode<int>>& possible_anc_or_desc_0,
     const unique_ptr<BstNode<int>>& possible_anc_or_desc_1,
     const unique_ptr<BstNode<int>>& middle) {
-  // TODO - you fill in here.
-  return true;
+  BstNode<int> *from0 = possible_anc_or_desc_0.get();
+  BstNode<int> *from1 = possible_anc_or_desc_1.get();
+
+  int middleData = middle->data;
+  while(from0 != possible_anc_or_desc_1.get() && from0 != middle.get() && from1 != middle.get() && from1 != possible_anc_or_desc_0.get()) {
+    if (from0) {
+      from0 = from0->data > middleData ? from0->left.get() : from0->right.get();
+    }
+
+    if (from1) {
+      from1 = from1->data > middleData ? from1->left.get() : from1->right.get();
+    }
+  }
+
+  if ((from0 != middle.get() && from1 != middle.get()) || from0 == possible_anc_or_desc_1.get() || from1 == possible_anc_or_desc_0.get()) {
+    return false;
+  }
+
+  return SearchPath(middle, from0 == middle.get() ? possible_anc_or_desc_1 : possible_anc_or_desc_0);
 }
 bool PairIncludesAncestorAndDescendantOfMWrapper(
     TimedExecutor& executor, const unique_ptr<BstNode<int>>& tree,
