@@ -1,8 +1,23 @@
 #include "test_framework/generic_test.h"
 
+int ComputeNumWays(int top, int maxStep, std::vector<int>& dp) {
+  if (top <= 1) {
+    return 1;
+  }
+
+  if (dp[top] == 0) {
+    for (int i = 1; i <= maxStep && top - i >= 0; i++) {
+      dp[top] += ComputeNumWays(top-i, maxStep, dp);
+    }
+  }
+  return dp[top];
+}
+
+
 int NumberOfWaysToTop(int top, int maximum_step) {
-  // TODO - you fill in here.
-  return 0;
+  std::vector<int> dp(top+1, 0);
+
+  return ComputeNumWays(top, maximum_step, dp);
 }
 
 int main(int argc, char* argv[]) {
