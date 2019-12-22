@@ -18,6 +18,7 @@ vector<int> GrayCode(int num_bits) {
       result.emplace_back(currNum);
     }
   }
+  
   return result;
 }
 bool DiffersByOneBit(int x, int y) {
