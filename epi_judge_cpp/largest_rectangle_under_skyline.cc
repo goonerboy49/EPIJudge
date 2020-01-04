@@ -1,10 +1,25 @@
+#include <iostream>
 #include <vector>
 #include "test_framework/generic_test.h"
 using std::vector;
 
 int CalculateLargestRectangle(const vector<int>& heights) {
-  // TODO - you fill in here.
-  return 0;
+  std::stack<int> indices;
+  int ans = 0;
+
+  for (int i = 0; i <= heights.size(); i++) {
+    while(!indices.empty() &&
+          (i < heights.size() ? (heights[indices.top()] >= heights[i]): true)) {
+      int height = heights[indices.top()];
+      indices.pop();
+
+      int width = !indices.empty() ? (i - indices.top() -1) : i;
+      ans = std::max(ans, (width * height));
+    }
+    indices.push(i);
+  }
+
+  return ans;
 }
 
 int main(int argc, char* argv[]) {

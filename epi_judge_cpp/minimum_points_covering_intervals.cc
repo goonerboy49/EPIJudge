@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <vector>
 #include "test_framework/generic_test.h"
 #include "test_framework/serialization_traits.h"
@@ -8,8 +9,25 @@ struct Interval {
 };
 
 int FindMinimumVisits(vector<Interval> intervals) {
-  // TODO - you fill in here.
-  return 0;
+
+  auto cmp = [](const Interval& a, const Interval& b) {
+    return a.right < b.right;
+  };
+
+  std::sort(intervals.begin(), intervals.end(), cmp);
+
+  int ans = 0;
+
+  int currEnd = std::numeric_limits<int>::min();
+
+  for(int start = 0; start < intervals.size(); start++) {
+    if (intervals[start].left > currEnd) {
+      currEnd = intervals[start].right;
+      ++ans;
+    }
+  }
+
+  return ans;
 }
 template <>
 struct SerializationTraits<Interval> : UserSerTraits<Interval, int, int> {};
