@@ -34,7 +34,7 @@ bool PairIncludesAncestorAndDescendantOfM(
   }
 
   if ((from0 != middle.get() && from1 != middle.get()) || from0 == possible_anc_or_desc_1.get() || from1 == possible_anc_or_desc_0.get()) {
-    return false;
+    return false;  
   }
 
   return SearchPath(middle, from0 == middle.get() ? possible_anc_or_desc_1 : possible_anc_or_desc_0);
