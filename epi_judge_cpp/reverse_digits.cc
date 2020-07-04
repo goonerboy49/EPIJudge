@@ -1,7 +1,14 @@
 #include "test_framework/generic_test.h"
 long long Reverse(int x) {
   // TODO - you fill in here.
-  return 0;
+  long long result = 0;
+  while(x) {
+    int lastDigit = x % 10;
+    result = result*10+lastDigit;
+    x = x/10;
+  }
+
+  return result;
 }
 
 int main(int argc, char* argv[]) {

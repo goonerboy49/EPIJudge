@@ -2,7 +2,16 @@
 #include "test_framework/generic_test.h"
 using std::vector;
 int HIndex(vector<int> citations) {
-  // TODO - you fill in here.
+  // Sort the list
+  std::sort(citations.begin(), citations.end());
+  const size_t len = citations.size();
+  for (int i = 0; i < len; i++) {
+    int numRemaining = len - i;
+    if (citations[i] >= numRemaining) {
+      return numRemaining;
+    }
+  }
+
   return 0;
 }
 
