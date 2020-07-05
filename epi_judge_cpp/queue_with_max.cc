@@ -7,17 +7,27 @@ using std::length_error;
 class QueueWithMax {
  public:
   void Enqueue(int x) {
-    // TODO - you fill in here.
+    mainQueue.emplace(x);
+    while(!maxQueue.empty() && maxQueue.back() < x) {
+      maxQueue.pop_back();
+    }
+    maxQueue.emplace_back(x);
     return;
   }
   int Dequeue() {
-    // TODO - you fill in here.
-    return 0;
+    int retVal = mainQueue.front();
+    mainQueue.pop();
+    if (retVal == maxQueue.front()) {
+      maxQueue.pop_front();
+    }
+    return retVal;
   }
   int Max() const {
-    // TODO - you fill in here.
-    return 0;
+    return maxQueue.front();
   }
+
+  std::queue<int> mainQueue;
+  std::deque<int> maxQueue;
 };
 struct QueueOp {
   enum { kConstruct, kDequeue, kEnqueue, kMax } op;
