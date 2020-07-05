@@ -1,9 +1,36 @@
+#include <functional>
+#include <map>
+#include <stack>
 #include <string>
+#include <unordered_map>
+
 #include "test_framework/generic_test.h"
 using std::string;
 int Evaluate(const string& expression) {
-  // TODO - you fill in here.
-  return 0;
+  std::stack<int> operands;
+  const std::unordered_map<std::string, std::function<int(int, int)>> kOperations = {
+    {"+", [](int x, int y) {return x+y;}},
+    {"-", [](int x, int y) {return x-y;}},
+    {"*", [](int x, int y) {return x*y;}},
+    {"/", [](int x, int y) {return x/y;}}
+  };
+
+  std::stringstream ss(expression);
+  std::string nextStr;
+
+  while(getline(ss, nextStr, ',')) {
+    if (kOperations.count(nextStr)) {
+      int y = operands.top();
+      operands.pop();
+      int x = operands.top();
+      operands.pop();
+      operands.emplace(kOperations.at(nextStr)(x,y));
+    } else {
+      operands.emplace(stoi(nextStr));
+    }
+  }
+  
+  return operands.top();
 }
 
 int main(int argc, char* argv[]) {
