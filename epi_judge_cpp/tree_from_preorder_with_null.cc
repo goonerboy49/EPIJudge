@@ -7,6 +7,11 @@
 using std::string;
 using std::vector;
 
+/**
+ * Notes -
+ * Importantly note that the index is incremented in each recursive call and hence notice that index 
+ * is a pointer to the recursion.
+ */
 unique_ptr<BinaryTreeNode<int>> ReconstructPreorderHelper(const vector<int*>& preorder, int *currIdx){
   int *currKey = preorder[*currIdx];
   int& currIdxRef = *currIdx;

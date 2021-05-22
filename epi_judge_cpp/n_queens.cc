@@ -4,9 +4,39 @@
 #include "test_framework/generic_test.h"
 using std::vector;
 
+void isValid(int row, int n, vector<int>& prevQPositions, vector<vector<int>>& ans) {
+  if (row == n) {
+    ans.emplace_back(prevQPositions);
+    return;
+  }
+
+  // Try placing the queen in each col of this row and
+  // bail if it clashes with a queen placement in one 
+  // of the previous rows.
+  for (int col = 0; col < n; col++) {
+    bool placementFound = true;
+    for (int prevRow = 0; prevRow < row; prevRow++) {
+      int prevCol = prevQPositions[prevRow];
+      if (prevCol == col || (prevRow+prevCol == row + col || prevRow-prevCol == row-col)) {
+        placementFound = false;
+        break;
+      }
+    }
+
+    if(placementFound) {
+      prevQPositions[row] = col;
+      isValid(row+1, n, prevQPositions, ans);
+      prevQPositions[row] = -1;
+    }
+  }
+}
+
+
 vector<vector<int>> NQueens(int n) {
-  // TODO - you fill in here.
-  return {};
+  std::vector<int> qPositions(n, -1);
+  vector<vector<int>> ans;
+  isValid(0, n, qPositions, ans);
+  return ans;
 }
 bool Comp(vector<vector<int>>& a, vector<vector<int>>& b) {
   std::sort(std::begin(a), std::end(a));

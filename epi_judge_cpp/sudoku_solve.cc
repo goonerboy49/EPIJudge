@@ -8,9 +8,72 @@
 using std::begin;
 using std::end;
 using std::vector;
-bool SolveSudoku(vector<vector<int>>* partial_assignment) {
-  // TODO - you fill in here.
+
+/**
+ * Notes -
+ * - If the current square is already filled advance to the next square and return the
+ * backtracking result starting from there
+ * - Check if the val is valid before starting a backtracking node from there
+ */ 
+
+bool CheckVal(int r, int c, int val, const vector<vector<int>>& assignment) {
+  // Check row constraints
+  vector<int> row = assignment[r];
+  for (int i = 1; i <= row.size(); i++) {
+    if (row[i-1] == val) {
+      return false;
+    }
+  }
+
+  // Check col constraints
+  for (int i = 1; i <= 9; i++) {
+    if (assignment[i-1][c] == val) {
+      return false;
+    }
+  }
+
+  int const regionSize = sqrt(assignment[0].size());
+  int rowRegion = r / regionSize;
+  int colRegion = c / regionSize;
+
+  for (int i = rowRegion*regionSize; i < (rowRegion+1)*regionSize; i++) {
+    for (int j = colRegion*regionSize; j <(colRegion+1)*regionSize; j++) {
+      if (assignment[i][j] == val) {
+        return false;
+      }
+    }
+  }
+
   return true;
+}
+
+bool SudokuRecurse(int r, int c, vector<vector<int>>* partial_assignment) {
+  if (c == (*partial_assignment)[r].size()) {
+    c = 0; // Start a new row, reset col to 0
+    if (++r == (*partial_assignment).size()) {
+      return true;
+    }
+  }
+
+  if ((*partial_assignment)[r][c] != 0) {
+    return SudokuRecurse(r, c+1, partial_assignment);
+  }
+
+  for (int i = 1; i <=(*partial_assignment).size(); i++) {
+    if (CheckVal(r, c, i, *partial_assignment)) {
+      (*partial_assignment)[r][c] = i;
+      if (SudokuRecurse(r, c+1, partial_assignment)) {
+        return true;
+      }
+    }
+  }
+
+  (*partial_assignment)[r][c] = 0;
+  return false;
+}
+
+bool SolveSudoku(vector<vector<int>>* partial_assignment) {
+  return SudokuRecurse(0, 0, partial_assignment);
 }
 vector<int> GatherColumn(const vector<vector<int>>& data, size_t i) {
   vector<int> result;

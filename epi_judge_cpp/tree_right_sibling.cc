@@ -13,6 +13,15 @@ struct BinaryTreeNode {
   explicit BinaryTreeNode(T data) : data(data){};
 };
 
+
+/**
+ * Notes
+ * - Important to note that this algorithm works for perfectly balanced binary trees and not otherwise
+ * - General idea is to complete one level and move on to the left subtree in next level
+ * - currNode->left->next = currNode->right.get()
+ * - if (currNode->next) 
+ *    currNode->right->next = currNode->next->left.get()
+ */ 
 void RightSiblingInNextLevel(BinaryTreeNode<int>* node) {
   while(node) {
     if (node->left) {

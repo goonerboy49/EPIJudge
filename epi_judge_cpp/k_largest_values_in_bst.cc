@@ -5,9 +5,27 @@
 using std::unique_ptr;
 using std::vector;
 
+/**
+ * Notes -
+ * Do a reverse inorder by visiting the right most node first.
+ * Check the size before adding to result very important.
+ */ 
+
+void LargestInBstRecurse(BstNode<int> *node, vector<int>& ans, int k) {
+  if (node != nullptr && ans.size() < k) {
+    LargestInBstRecurse(node->right.get(), ans, k);
+    if (ans.size() < k) {
+      ans.emplace_back(node->data);
+      LargestInBstRecurse(node->left.get(), ans, k);
+    }
+  }
+}
+
 vector<int> FindKLargestInBST(const unique_ptr<BstNode<int>>& tree, int k) {
-  // TODO - you fill in here.
-  return {};
+  vector<int> ans;
+  LargestInBstRecurse(tree.get(),ans, k);
+
+  return ans;
 }
 
 int main(int argc, char* argv[]) {

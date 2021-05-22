@@ -15,6 +15,12 @@ shared_ptr<ListNode<int>> ReverseSublist(shared_ptr<ListNode<int>> L, int start,
   shared_ptr<ListNode<int>> prev = subListHead;
   shared_ptr<ListNode<int>> curr = subListHead->next;
 
+  /**
+   * Here the objective is such that for each new node encountered(temp)
+   * it is moved to the start position of the sublist, repeatedly doing 
+   * this for all nodes in the sublist will reverse the sublist between
+   * start and finish.
+   */
   while(s < finish && curr) {
     shared_ptr<ListNode<int>> temp = curr->next;
     curr->next = temp->next;

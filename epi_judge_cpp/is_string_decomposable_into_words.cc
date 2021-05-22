@@ -10,8 +10,38 @@ using std::vector;
 
 vector<string> DecomposeIntoDictionaryWords(
     const string& domain, const unordered_set<string>& dictionary) {
-  // TODO - you fill in here.
-  return {};
+  vector<int> lastIdx(domain.size(), -1);
+  for (int end = 0; end < domain.size(); end++) {
+    if (dictionary.count(domain.substr(0, end + 1))) {
+      //std::cout << "Last idx of end " << end << " set to 0" << std::endl;
+      lastIdx[end] = 0;
+      continue;
+    }
+    for (int start = 0; start <= end; start++) {
+      //std::cout << "Checking substring " << domain.substr(start, end-start+1) << std::endl;
+      if (start > 0 && lastIdx[start-1] != -1 && dictionary.find(domain.substr(start, end-start+1)) != dictionary.end()) {
+        //std::cout << "last idx of end " << end << " set to " << start << std::endl;
+        lastIdx[end] = start;
+        break; 
+      }
+    }
+  }
+  vector<string> ans;
+  int endIdx = domain.size()-1;
+  int startIdx = lastIdx[endIdx];
+  while(startIdx != -1) {
+    //std::cout << "Adding " << domain.substr(startIdx, endIdx-startIdx+1) << " to result" << std::endl;
+    ans.emplace_back(domain.substr(startIdx, endIdx-startIdx+1));
+    if (startIdx == 0) {
+      break;
+    }
+    endIdx = startIdx-1;
+    startIdx = lastIdx[endIdx];
+  }
+
+  std::reverse(ans.begin(), ans.end());
+
+  return ans;
 }
 void DecomposeIntoDictionaryWordsWrapper(
     TimedExecutor& executor, const string& domain,

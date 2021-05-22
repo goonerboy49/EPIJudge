@@ -2,6 +2,13 @@
 #include "test_framework/generic_test.h"
 using std::vector;
 
+/*
+ * Notes
+ * Create an empty subset and add each possible candidate elements to
+ * the empty subset. Then keep expanding the subset size by expanding the
+ * individual already added to the answer
+ */
+
 vector<vector<int>> GeneratePowerSet(const vector<int>& input_set) {
   vector<vector<int>> retVal(1, vector<int>());
 

@@ -3,8 +3,13 @@
 using std::vector;
 
 int FindMaximumSubarray(const vector<int>& A) {
-  // TODO - you fill in here.
-  return -1;
+  int maxSum = 0;
+  int currSum = 0;
+  for (int i = 0; i < A.size(); i++) {
+    currSum = std::max(currSum + A[i], A[i]);
+    maxSum = std::max(maxSum, currSum);
+  }
+  return maxSum;
 }
 
 int main(int argc, char* argv[]) {

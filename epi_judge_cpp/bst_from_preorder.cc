@@ -9,13 +9,12 @@ using std::vector;
 
 using namespace std;
 
-int
-FindIdxGreaterThan(const vector<int>& preorder_sequence, int start, int end, int root) {
-  while(start < end && preorder_sequence[start] <= root) {
-    start++;
-  }
-  return start;
-}
+/**
+ * Notes
+ * In preorder first element is the root element, hence set the root and find the left and
+ * right subtrees in all subsequent elements such that left tree is in range -INF to currIdx
+ * element and right tree is in range currIdx element to INF.
+ */ 
 
 unique_ptr<BstNode<int>> 
 RebuildBstRecurse(int& currIdx, int low, int high, const vector<int>& preorder_sequence) {
@@ -29,6 +28,7 @@ RebuildBstRecurse(int& currIdx, int low, int high, const vector<int>& preorder_s
     return nullptr;
   }
 
+  // NOTE - Important that this is done after the check for range above.
   ++currIdx;
   unique_ptr<BstNode<int>> left = RebuildBstRecurse(currIdx, low, rootData, preorder_sequence);
   unique_ptr<BstNode<int>> right = RebuildBstRecurse(currIdx, rootData, high, preorder_sequence);

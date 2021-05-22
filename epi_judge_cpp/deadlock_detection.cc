@@ -5,14 +5,39 @@
 #include "test_framework/timed_executor.h"
 using std::vector;
 
-struct GraphVertex {
-  vector<GraphVertex*> edges;
+enum Color {
+  kWhite = 0,
+  kGray = 1,
+  kBlack = 2
 };
 
-bool IsDeadlocked(vector<GraphVertex>* graph) {
-  // TODO - you fill in here.
-  return true;
+struct GraphVertex {
+  vector<GraphVertex*> edges;
+  Color color = kWhite;
+};
+
+bool HasCycle(GraphVertex *vertex) {
+  if (vertex->color == kGray) {
+    return true;
+  }
+
+  vertex->color = kGray;
+  for (GraphVertex*& neighbor : vertex->edges) {
+    if (neighbor->color != kBlack && HasCycle(neighbor)) {
+      return true;
+    }
+  }
+
+  vertex->color = kBlack;
+  return false;
 }
+
+bool IsDeadlocked(vector<GraphVertex>* graph) {
+  return std::any_of(graph->begin(), graph->end(), [](GraphVertex& vertex) {
+    return vertex.color == kWhite && HasCycle(&vertex);
+  });
+}
+
 struct Edge {
   int from;
   int to;

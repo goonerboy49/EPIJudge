@@ -5,12 +5,40 @@
 #include "test_framework/test_failure.h"
 #include "test_framework/timed_executor.h"
 using std::unique_ptr;
+
+struct DescendantData {
+  int numDescendants;
+  BinaryTreeNode<int>* ancestor;
+};
+
+
+DescendantData LCARecurse(const unique_ptr<BinaryTreeNode<int>>& tree,
+                         const unique_ptr<BinaryTreeNode<int>>& node0,
+                         const unique_ptr<BinaryTreeNode<int>>& node1) {
+  if (tree == nullptr) {
+    return {0, nullptr};
+  }
+
+  auto leftRes = LCARecurse(tree->left, node0, node1);
+  if (leftRes.numDescendants == 2) {
+    return leftRes;
+  }
+
+  auto rightRes = LCARecurse(tree->right, node0, node1);
+  if (rightRes.numDescendants == 2) {
+    return rightRes;
+  }
+
+  int currResult = leftRes.numDescendants+rightRes.numDescendants+(tree==node0)+(tree==node1);
+  return {currResult, currResult == 2 ? tree.get() : nullptr};
+}
+
 BinaryTreeNode<int>* LCA(const unique_ptr<BinaryTreeNode<int>>& tree,
                          const unique_ptr<BinaryTreeNode<int>>& node0,
                          const unique_ptr<BinaryTreeNode<int>>& node1) {
-  // TODO - you fill in here.
-  return nullptr;
+  return LCARecurse(tree, node0, node1).ancestor;
 }
+
 int LcaWrapper(TimedExecutor& executor,
                const unique_ptr<BinaryTreeNode<int>>& tree, int key0,
                int key1) {
