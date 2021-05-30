@@ -2184,7 +2184,11 @@ zip_list: $(BUILD_DIR)/zip_list
 
 $(BUILD_DIR)/alien_dictionary: $(SRC_DIR)/alien_dictionary.cc | $(BUILD_DIR)
 	$(CXX_COMPILER) $(CXX_FLAGS_DEBUG) -o $@ $<
+<<<<<<< HEAD
 alien_dictionary: $(BUILD_DIR)/alien_dictionary
+=======
+alien_dictionary: $(BUILD_DIR)/zip_list
+>>>>>>> Dummy Make file changes
 	$< $(PROGRAM_ARGS)
 
 .PHONY: alien_dictionary
