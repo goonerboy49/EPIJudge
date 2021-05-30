@@ -117,7 +117,7 @@ private:
   // Digits that represent a number, most significant bit is present at the
   // front. Storing individual digits as a node in the list helps in
   // representing a very large number.
-  std::vector<int> _nums;
+  std::list<int> _nums;
 };
 
 std::ostream &operator<<(std::ostream &out, const Number &number) {
