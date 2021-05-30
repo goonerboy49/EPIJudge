@@ -1,15 +1,33 @@
 #include <list>
 #include <iostream>
+#include <numeric>
+#include <queue>
 #include <vector>
 
-
-class Number{
+/**
+ * Represents a number.
+ */
+class Number {
 public:
-    Number multiply(int val) {
-        Number ans;
-        auto iter = _nums.crbegin();
+    // Initialize the number with a digit.
+    /**
+     * @brief Construct a new Number object
+     * 
+     * @param val Intialize with a digit
+     * 
+     * @note val < 9
+     */
+    Number(int val) {_nums.push_front(val);}
+
+    /**
+     * @brief Multiplication operation on the existing number.
+     * 
+     * @param val 
+     */
+    void multiply(int val) {
+        auto iter = _nums.rbegin();
         int carry = 0;
-        while(iter != _nums.crend()) {
+        while(iter != _nums.rend()) {
             int curr = (*iter) * val;
             curr += carry;
             if (curr >= 10) {
@@ -18,29 +36,56 @@ public:
             } else {
                 carry = 0;
             }
-            ans.push_front(curr);
+            *iter = curr;
             ++iter;
         }
         if (carry != 0) {
-            ans.push_front(carry);
+            _nums.push_front(carry);
         }
-
-        return ans;
     }
 
-    void push_front(int val) {
-        _nums.push_front(val);
-    }
-
+    /**
+     * @brief Return the number of digits in this number.
+     * 
+     * @return int 
+     */
     int size() const {
         return _nums.size();
     }
 
-    bool operator<(Number const& b) const {
+    /**
+     * @brief Is number a multiple of 3.
+     * 
+     * @return true if number is a multiple of 3.
+     * @return false otherwise.
+     */
+    bool isMultipleOf3() const {
+        int sum = std::accumulate(_nums.begin(), _nums.end(), 0);
+        return sum % 3 == 0;
+    }
+
+    /**
+     * @brief Is number a multiple of 5.
+     * 
+     * @return true if number is a multiple of 5.
+     * @return false otherwise.
+     */
+    bool isMultipleOf5() const {
+        return _nums.back() == 5 || _nums.back() == 0;
+    }
+
+    /**
+     * @brief > Operator to sort the minHeap in ascending order.
+     * 
+     * @param b Other element in the minHeap.
+     * @return true 
+     * @return false 
+     */
+    bool operator>(Number const& b) const {
         if (_nums.size() < b.size()) {
-            return true;
-        } else if (_nums.size() > b.size()) {
             return false;
+        } else if (_nums.size() > b.size()) {
+            return true;
         } else {
             auto iter1 = _nums.begin();
             auto iter2 = b.getBegin();
@@ -50,11 +95,14 @@ public:
                 ++iter2;
             }
 
-            return *iter1 < *iter2;
+            return *iter1 > *iter2;
         }
-    }
+    } 
 
     bool operator==(Number const& b) const {
+        if (_nums.size() != b.size()) {
+            return false;
+        }
         auto iter1 = _nums.begin();
         auto iter2 = b.getBegin();
 
@@ -75,6 +123,9 @@ private:
     std::list<int>::const_iterator getEnd() const {
         return _nums.cend();
     }
+
+    // Digits that represent a number, most significant bit is present at the front.
+    // Storing individual digits as a node in the list helps in representing a very large number.
     std::list<int> _nums;
 };
 
@@ -85,44 +136,73 @@ std::ostream& operator<< (std::ostream &out, const Number& number) {
         out << *iter;
         ++iter;
     }
-
     return out;
 }
 
 Number nthMultiple(long int n) {
-    std::vector<Number> dp(1);
-    int l2 = 0,l3 = 0,l5 = 0;
-    //std::cout << "I am here" << std::endl;
-    dp[0].push_front(1);
+    std::priority_queue<Number, std::vector<Number>, std::greater<Number> > minHeap;
+    Number twoMultiple(2);
+    Number threeMultiple(3);
+    Number fiveMultiple(5);
+    minHeap.push(twoMultiple);
+    minHeap.push(threeMultiple);
+    minHeap.push(fiveMultiple);
+    Number maxSoFar = fiveMultiple;
     
-    for (int i = 1; i < n; i++) {
-        Number twoMultiple = dp[l2].multiply(2);
-        //std::cout << "Two multiple " << twoMultiple << std::endl;
-        Number threeMultiple = dp[l3].multiply(3);
-        //std::cout << "Three multiple " << threeMultiple << std::endl;
-        Number fiveMultiple = dp[l5].multiply(5);
-        //std::cout << "Five multiple " << fiveMultiple << std::endl;
-        dp.push_back(std::min(std::min(twoMultiple, threeMultiple), fiveMultiple));
-        //std::cout << "After comparison " << dp[i] << std::endl;
-        if (dp[i] == twoMultiple) {
-            l2++;
+    for (int i = 1; i < n-1; i++) {
+        Number top = minHeap.top();
+        minHeap.pop();
+
+        if (top.isMultipleOf5()) {
+            Number fiveMultiple = top;
+            fiveMultiple.multiply(5);
+            
+            if (minHeap.size() < n-i-1 || maxSoFar > fiveMultiple) {
+                minHeap.push(fiveMultiple);
+                maxSoFar = fiveMultiple > maxSoFar ? fiveMultiple : maxSoFar;
+            }
+        } else if (top.isMultipleOf3()) {
+            Number fiveMultiple = top;
+            fiveMultiple.multiply(5);
+            if (minHeap.size() < n-i-1 || maxSoFar > fiveMultiple) {
+                minHeap.push(fiveMultiple);
+                maxSoFar = fiveMultiple > maxSoFar ? fiveMultiple : maxSoFar;
+            }
+
+            Number threeMultiple = top;
+            threeMultiple.multiply(3);
+            if (minHeap.size() < n-i-1 || maxSoFar > threeMultiple) {
+                minHeap.push(threeMultiple);
+                maxSoFar = threeMultiple > maxSoFar ? threeMultiple : maxSoFar;
+            }
+        } else {
+            Number fiveMultiple = top;
+            fiveMultiple.multiply(5);
+            if (minHeap.size() < n-i-1 || maxSoFar > fiveMultiple) {
+                minHeap.push(fiveMultiple);
+                maxSoFar = fiveMultiple > maxSoFar ? fiveMultiple : maxSoFar;
+            }
+
+            Number threeMultiple = top;
+            threeMultiple.multiply(3);
+            if (minHeap.size() < n-i-1 || maxSoFar > threeMultiple) {
+                minHeap.push(threeMultiple);
+                maxSoFar = threeMultiple > maxSoFar ? threeMultiple : maxSoFar;
+            }
+
+            Number twoMultiple = top;
+            twoMultiple.multiply(2);
+            if (minHeap.size() < n-i-1 || maxSoFar > twoMultiple) {
+                minHeap.push(twoMultiple);
+                maxSoFar = twoMultiple > maxSoFar ? twoMultiple : maxSoFar;
+            }
         }
-        
-        if (dp[i] == threeMultiple) {
-            l3++;
-        }
-        
-        if (dp[i] == fiveMultiple) {
-            l5++;
-        }            
     }
-    
-    return dp[n-1];
+    return minHeap.top();
 } 
 // Driver code
 int main(int argc, char* argv[])
 {
-    //std::cout << "Number of arguments " << argc;
     if (argc != 2) {
         std::cerr << "Invalid number of arguments " << std::endl;
         return -1;
