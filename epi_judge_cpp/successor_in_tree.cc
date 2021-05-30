@@ -5,15 +5,14 @@
 BinaryTreeNode<int>* FindSuccessor(
     const unique_ptr<BinaryTreeNode<int>>& node) {
   // If the node has a right subtree then inorder successor is the leftmost
-  // node in right subtree
-
+  // node in right subtree.
   BinaryTreeNode<int>* iter = node.get();
 
   if (iter->right != nullptr) {
     // Traverse leftmost node in the right subtree.
     iter = iter->right.get();
-    while (iter->left.get() != nullptr) {
-      iter == iter->left.get();
+    while (iter->left != nullptr) {
+      iter = iter->left.get();
     }
 
     return iter;
@@ -21,9 +20,9 @@ BinaryTreeNode<int>* FindSuccessor(
 
   // If there is no right subtree travel up this branch until a node that
   // is the left child is found along the path traced using parent pointer.
-  // REMEMBER To check iter->parent and not iter->parent. because this 
+  // REMEMBER To check iter->parent and not iter. because this 
   // could traverse up to the root.
-  while(iter->parent != nullptr && iter->parent->right.get() == iter) {
+  while(iter->parent != nullptr && iter->parent->right != nullptr && iter->parent->right.get() == iter) {
     iter = iter->parent;
   }
 
