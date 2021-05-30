@@ -4,8 +4,34 @@
 using std::vector;
 
 vector<int> InorderTraversal(const unique_ptr<BinaryTreeNode<int>>& tree) {
-  // TODO - you fill in here.
-  return {};
+  BinaryTreeNode<int> *prev = nullptr;
+  BinaryTreeNode<int> *curr = tree.get();
+  vector<int> result;
+
+  while(curr) {
+    BinaryTreeNode<int> *next;
+    // If we came down to curr from its parent
+    if (curr->parent == prev) {
+      if (curr->left != nullptr) {
+        next = curr->left.get();
+      } else {
+        // Visit current node and go right
+        result.emplace_back(curr->data);
+        // If there is no right subtree then go up a level
+        next = curr->right != nullptr ? curr->right.get() : curr->parent;
+      }
+    } else if (prev == curr->left.get()) {// If we go up check if it is from left subtree
+      result.emplace_back(curr->data);
+      // If there is no right subtree then go up a level
+      next = curr->right != nullptr ? curr->right.get() : curr->parent;
+    } else {
+      next = curr->parent;
+    }
+    
+    prev = curr;
+    curr = next;
+  }
+  return result;
 }
 
 int main(int argc, char* argv[]) {
