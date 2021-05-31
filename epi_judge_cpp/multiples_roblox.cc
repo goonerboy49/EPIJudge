@@ -16,7 +16,7 @@ public:
    *
    * @note val <= 9
    */
-  Number(int val) { _nums.push_front(val); }
+  Number(int val) { _nums.push_back(val); }
 
   /**
    * @brief Multiplication operation on the existing number.
@@ -39,7 +39,7 @@ public:
       ++iter;
     }
     if (carry != 0) {
-      _nums.push_front(carry);
+      _nums.insert(_nums.begin(), carry);
     }
   }
 
@@ -110,14 +110,14 @@ public:
   friend std::ostream &operator<<(std::ostream &out, const Number &number);
 
 private:
-  std::list<int>::const_iterator getBegin() const { return _nums.cbegin(); }
+  std::vector<int>::const_iterator getBegin() const { return _nums.cbegin(); }
 
-  std::list<int>::const_iterator getEnd() const { return _nums.cend(); }
+  std::vector<int>::const_iterator getEnd() const { return _nums.cend(); }
 
   // Digits that represent a number, most significant bit is present at the
-  // front. Storing individual digits as a node in the list helps in
+  // front. Storing individual digits as a node in the vector helps in
   // representing a very large number.
-  std::list<int> _nums;
+  std::vector<int> _nums;
 };
 
 std::ostream &operator<<(std::ostream &out, const Number &number) {
