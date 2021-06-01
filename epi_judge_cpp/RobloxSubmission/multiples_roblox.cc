@@ -16,30 +16,31 @@ public:
    * @note val <= 9
    */
   Number(int val) { _nums.push_back(val); }
+  Number() {}
 
-//   Number &operator=(Number &&other) {
-//     if (this != &other) {
-//       _nums = other._nums;
-//     }
+  Number &operator=(Number &&other) {
+    if (this != &other) {
+      _nums = other._nums;
+    }
 
-//     return *this;
-//   }
+    return *this;
+  }
 
-//   Number(Number &&other) { _nums = other._nums; }
+  Number(Number &&other) { _nums = other._nums; }
 
-//   Number(const Number &other) {
-//     std::copy(other._nums.begin(), other._nums.end(),
-//               std::back_inserter(_nums));
-//   }
+  Number(const Number &other) {
+    std::copy(other._nums.begin(), other._nums.end(),
+              std::back_inserter(_nums));
+  }
 
-//   Number &operator=(const Number &other) {
-//     if (this != &other) {
-//       std::vector<int>().swap(_nums);
-//       std::copy(other._nums.begin(), other._nums.end(),
-//                 std::back_inserter(_nums));
-//     }
-//     return *this;
-//   }
+  Number &operator=(const Number &other) {
+    if (this != &other) {
+      std::vector<int>().swap(_nums);
+      std::copy(other._nums.begin(), other._nums.end(),
+                std::back_inserter(_nums));
+    }
+    return *this;
+  }
 
   /**
    * @brief Multiplication operation on the existing number.
@@ -72,6 +73,8 @@ public:
    * @return int
    */
   int size() const { return _nums.size(); }
+
+  void clear() { _nums.clear();}
 
   /**
    * @brief Returns true if the Number is a multiple of given prime.
@@ -169,13 +172,48 @@ std::ostream &operator<<(std::ostream &out, const Number &number) {
   return out;
 }
 
-int pruneUsed(std::vector<Number> &multiples, int currIdx, int remaining, int num) {
-  if (multiples.size() > 1000000) {
-    multiples.erase(multiples.begin(), multiples.begin() + currIdx);
-    currIdx = 0;
+std::pair<int, int> getNextCandidatePos(std::vector<std::vector<Number>>& multiples, std::pair<int, int> const& currPos, int MAX_SIZE) {
+  int x = currPos.first;
+  int y = currPos.second;
+
+  Number curr = multiples[x][y];
+  multiples[x][y].clear();
+  if (y == MAX_SIZE-1) {
+    y = 0;
+  } else {
+    y++;
   }
 
-  return currIdx;
+  Number const& next = multiples[x][y];
+  if ((multiples.size() == 1 && next.size() == 0) || (next.size() > 0 && curr < next)) {
+    return {x,y};
+  }
+
+  multiples.erase(multiples.begin(), multiples.begin()+1);
+  return {0,0};
+}
+
+std::pair<int, int> getNextInsertionPos(std::vector<std::vector<Number>>& multiples, std::pair<int, int> const& currInsPos, int MAX_SIZE) {
+  int x = currInsPos.first;
+  int y = currInsPos.second;
+  if (multiples.size() == x) {
+    --x;
+  }
+
+  Number const& curr = multiples[x][y];
+  if (y == MAX_SIZE-1) {
+    y = 0;
+  } else {
+    ++y;
+  }
+
+  Number const& next = multiples[x][y];
+  if (next.size() == 0) {
+    return {x,y};
+  }
+
+  multiples.emplace_back(std::vector<Number>(MAX_SIZE));
+  return {++x, 0};
 }
 
 /**
@@ -186,56 +224,85 @@ int pruneUsed(std::vector<Number> &multiples, int currIdx, int remaining, int nu
  * @return Nth Number.
  */
 Number nthMultiple(long int n) {
-  int l2 = 0, l3 = 0, l5 = 0;
-  std::vector<Number> twoMultiples;
-  twoMultiples.emplace_back(std::move(Number(2)));
+  int MAX_SIZE=10000;
+  std::vector<std::vector<Number>> twoMultiples;
+  twoMultiples.emplace_back(std::vector<Number>(MAX_SIZE));
+  twoMultiples[0][0] = Number(2);
 
-  std::vector<Number> threeMultiples;
-  threeMultiples.emplace_back(std::move(Number(3)));
+  std::vector<std::vector<Number>> threeMultiples;
+  threeMultiples.emplace_back(std::vector<Number>(MAX_SIZE));
+  threeMultiples[0][0] = Number(3);
 
-  std::vector<Number> fiveMultiples;
-  fiveMultiples.emplace_back(std::move(Number(5)));
+  std::vector<std::vector<Number>> fiveMultiples;
+  fiveMultiples.emplace_back(std::vector<Number>(MAX_SIZE));
+  fiveMultiples[0][0] = Number(5);
 
-  Number ans(0);
+  std::pair<int, int> nextCandidate2(0,0);
+  std::pair<int, int> nextCandidate3(0,0);
+  std::pair<int, int> nextCandidate5(0,0);  
+
+  std::pair<int, int> insertionPos2(0,0);
+  std::pair<int, int> insertionPos3(0,0);
+  std::pair<int, int> insertionPos5(0,0);
+
+  Number ans;
   int count5=0;
   for (int i = 1;; i++) {
-    Number nextNumber = std::min(std::min(twoMultiples[l2], threeMultiples[l3]),
-                                 fiveMultiples[l5]);
+    // std::cout << "Next Candidate 5[" << nextCandidate5.first << "][" << nextCandidate5.second << "] " << fiveMultiples[nextCandidate5.first][nextCandidate5.second] << std::endl;
+    // std::cout << "Next Candidate 3[" << nextCandidate3.first << "][" << nextCandidate3.second << "] " << threeMultiples[nextCandidate3.first][nextCandidate3.second] << std::endl;
+    // std::cout << "Next Candidate 2[" << nextCandidate2.first << "][" << nextCandidate2.second << "] " << twoMultiples[nextCandidate2.first][nextCandidate2.second] << std::endl;
+    Number nextNumber = std::min(std::min(twoMultiples[nextCandidate2.first][nextCandidate2.second], threeMultiples[nextCandidate3.first][nextCandidate3.second]),
+                                 fiveMultiples[nextCandidate5.first][nextCandidate5.second]);
     if (i == n - 1) {
       ans = nextNumber;
       return nextNumber;
     }
-
+    // std::cout << "++Next number is " << nextNumber << std::endl;
 
     if (nextNumber.isMultiple(5)) {
-      ++l5;
       Number fiveMultiple = nextNumber;
       fiveMultiple.multiply(5);
-      fiveMultiples.emplace_back(std::move(fiveMultiple));
+      
+      nextCandidate5 = getNextCandidatePos(fiveMultiples, nextCandidate5, MAX_SIZE);
+      insertionPos5 = getNextInsertionPos(fiveMultiples, insertionPos5, MAX_SIZE);
+      fiveMultiples[insertionPos5.first][insertionPos5.second] = fiveMultiple;
     } else if (nextNumber.isMultiple(3)) {
-      ++l3;
-      Number threeMultiple = nextNumber;
       Number fiveMultiple = nextNumber;
-      threeMultiple.multiply(3);
       fiveMultiple.multiply(5);
-      threeMultiples.emplace_back(std::move(threeMultiple));
-      fiveMultiples.emplace_back(std::move(fiveMultiple));
+
+      insertionPos5 = getNextInsertionPos(fiveMultiples, insertionPos5, MAX_SIZE);
+      fiveMultiples[insertionPos5.first][insertionPos5.second] = fiveMultiple;
+
+      Number threeMultiple = nextNumber;
+      threeMultiple.multiply(3);
+
+      nextCandidate3 = getNextCandidatePos(threeMultiples, nextCandidate3, MAX_SIZE);
+      insertionPos3 = getNextInsertionPos(threeMultiples, insertionPos3, MAX_SIZE);
+      threeMultiples[insertionPos3.first][insertionPos3.second] = threeMultiple;
     } else {
-      ++l2;
-      Number twoMultiple = nextNumber;
-      Number threeMultiple = nextNumber;
       Number fiveMultiple = nextNumber;
-      twoMultiple.multiply(2);
-      threeMultiple.multiply(3);
       fiveMultiple.multiply(5);
-      twoMultiples.emplace_back(std::move(twoMultiple));
-      threeMultiples.emplace_back(std::move(threeMultiple));
-      fiveMultiples.emplace_back(std::move(fiveMultiple));
+      
+      
+      insertionPos5 = getNextInsertionPos(fiveMultiples, insertionPos5, MAX_SIZE);
+      fiveMultiples[insertionPos5.first][insertionPos5.second] = fiveMultiple;
+
+      Number threeMultiple = nextNumber;
+      threeMultiple.multiply(3);
+      insertionPos3 = getNextInsertionPos(threeMultiples, insertionPos3, MAX_SIZE);
+      threeMultiples[insertionPos3.first][insertionPos3.second] = threeMultiple;
+
+      Number twoMultiple = nextNumber;
+      twoMultiple.multiply(2);
+
+      nextCandidate2 = getNextCandidatePos(twoMultiples, nextCandidate2, MAX_SIZE);
+      insertionPos2 = getNextInsertionPos(twoMultiples, insertionPos2, MAX_SIZE);
+      twoMultiples[insertionPos2.first][insertionPos2.second] = twoMultiple;
     }
 
-    // l2 = pruneUsed(twoMultiples, l2, n-i, 2);
-    // l3 = pruneUsed(threeMultiples, l3, n-i, 3);
-    // l5 = pruneUsed(fiveMultiples, l5, n-i, 5);
+    // std::cout << "Next Insertion 5[" << insertionPos5.first << "][" << insertionPos5.second << "] " << std::endl;
+    // std::cout << "Next Insertion 3[" << insertionPos3.first << "][" << insertionPos3.second << "] " << std::endl;
+    // std::cout << "Next Insertion 2[" << insertionPos2.first << "][" << insertionPos2.second << "] " << std::endl;
   }
 
   return ans;
@@ -243,7 +310,6 @@ Number nthMultiple(long int n) {
 
 // Driver code
 int main(int argc, char *argv[]) {
-  // std::cout << "Number of arguments " << argc;
   if (argc != 2) {
     std::cerr << "Invalid number of arguments " << std::endl;
     return -1;
