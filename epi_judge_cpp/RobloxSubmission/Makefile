@@ -2,7 +2,7 @@ CXX_COMPILER:=g++
 SRC_DIR := .
 CXX_FLAGS_DEFAULT := -Ofast
 CXX_FLAGS_DEBUG := -g -O0
-CXX_FLAGS_PROFILER := -g -O0 -lprofiler
+CXX_FLAGS_PROFILER := -g -O0 -lprofiler -ltcmalloc
 BUILD_DIR := build
 
 $(BUILD_DIR):

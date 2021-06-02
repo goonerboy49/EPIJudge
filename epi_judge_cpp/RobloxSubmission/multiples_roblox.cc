@@ -16,6 +16,7 @@ public:
    * @note val <= 9
    */
   Number(int val) { _nums.push_back(val); }
+  Number() {}
 
 //   Number &operator=(Number &&other) {
 //     if (this != &other) {
@@ -129,7 +130,9 @@ public:
   }
 
   bool operator<(Number const &b) const {
-    if (_nums.size() < b.size()) {
+    if (_nums.size() == 0 || b.size() == 0) {
+      return _nums.size() == 0 ? false : true;
+    } else if (_nums.size() < b.size()) {
       return true;
     } else if (_nums.size() > b.size()) {
       return false;
@@ -197,29 +200,42 @@ Number nthMultiple(long int n) {
   fiveMultiples.emplace_back(std::move(Number(5)));
 
   Number ans(0);
-  int count5=0;
+  int count=0;
+  Number maxSoFar(1);
   for (int i = 1;; i++) {
-    Number nextNumber = std::min(std::min(twoMultiples[l2], threeMultiples[l3]),
-                                 fiveMultiples[l5]);
+    Number nextNumber = std::min(std::min(l2 < twoMultiples.size() ? twoMultiples[l2] : Number(), l3 < threeMultiples.size() ? threeMultiples[l3]: Number()),
+                                 l5 < fiveMultiples.size() ? fiveMultiples[l5]: Number());
     if (i == n - 1) {
       ans = nextNumber;
       return nextNumber;
     }
 
+    int unprocessed = twoMultiples.size() - l2 + threeMultiples.size() - l3 + fiveMultiples.size() - l5 - 1;
+    int remaining = n-i;
 
     if (nextNumber.isMultiple(5)) {
-      ++l5;
+      l5++;
       Number fiveMultiple = nextNumber;
       fiveMultiple.multiply(5);
-      fiveMultiples.emplace_back(std::move(fiveMultiple));
+      if (unprocessed < remaining || fiveMultiple < maxSoFar) {
+        maxSoFar = std::max(maxSoFar, fiveMultiple);
+        fiveMultiples.emplace_back(std::move(fiveMultiple));
+      }
     } else if (nextNumber.isMultiple(3)) {
       ++l3;
       Number threeMultiple = nextNumber;
       Number fiveMultiple = nextNumber;
       threeMultiple.multiply(3);
       fiveMultiple.multiply(5);
-      threeMultiples.emplace_back(std::move(threeMultiple));
-      fiveMultiples.emplace_back(std::move(fiveMultiple));
+      if (unprocessed < remaining || threeMultiple < maxSoFar) {
+        maxSoFar = std::max(threeMultiple, maxSoFar);
+        threeMultiples.emplace_back(std::move(threeMultiple));
+        unprocessed++;
+        if (unprocessed < remaining || fiveMultiple < maxSoFar) {
+          maxSoFar = std::max(fiveMultiple, maxSoFar);
+          fiveMultiples.emplace_back(std::move(fiveMultiple));
+        }
+      }      
     } else {
       ++l2;
       Number twoMultiple = nextNumber;
@@ -228,14 +244,26 @@ Number nthMultiple(long int n) {
       twoMultiple.multiply(2);
       threeMultiple.multiply(3);
       fiveMultiple.multiply(5);
-      twoMultiples.emplace_back(std::move(twoMultiple));
-      threeMultiples.emplace_back(std::move(threeMultiple));
-      fiveMultiples.emplace_back(std::move(fiveMultiple));
+
+      if (unprocessed < remaining || twoMultiple < maxSoFar) {
+        maxSoFar = std::max(twoMultiple, maxSoFar);
+        twoMultiples.emplace_back(std::move(twoMultiple));
+        unprocessed++;
+        if (unprocessed < remaining || threeMultiple < maxSoFar) {
+          maxSoFar = std::max(threeMultiple, maxSoFar);
+          threeMultiples.emplace_back(std::move(threeMultiple));
+          unprocessed++;
+          if (unprocessed < remaining || fiveMultiple < maxSoFar) {
+            maxSoFar = std::max(fiveMultiple, maxSoFar);
+            fiveMultiples.emplace_back(std::move(fiveMultiple));
+          }
+        }
+      }
     }
 
-    // l2 = pruneUsed(twoMultiples, l2, n-i, 2);
-    // l3 = pruneUsed(threeMultiples, l3, n-i, 3);
-    // l5 = pruneUsed(fiveMultiples, l5, n-i, 5);
+    l2 = pruneUsed(twoMultiples, l2, n-i, 2);
+    l3 = pruneUsed(threeMultiples, l3, n-i, 3);
+    l5 = pruneUsed(fiveMultiples, l5, n-i, 5);
   }
 
   return ans;
@@ -243,12 +271,12 @@ Number nthMultiple(long int n) {
 
 // Driver code
 int main(int argc, char *argv[]) {
-  // std::cout << "Number of arguments " << argc;
+  ////std::cout << "Number of arguments " << argc;
   if (argc != 2) {
     std::cerr << "Invalid number of arguments " << std::endl;
     return -1;
   }
-  std::cout << nthMultiple(strtol(argv[1], NULL, 10)) << std::endl;
+ std::cout << nthMultiple(strtol(argv[1], NULL, 10)) << std::endl;
 
   return 0;
 }
