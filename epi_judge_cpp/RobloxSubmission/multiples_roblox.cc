@@ -169,7 +169,7 @@ void UpdateHeap(Number const &currNumber, int currIdx, int n,
         // far so that items that will not be useful to the answer are not added
         // to the heap.
         if (minHeap.size() < n - currIdx - 1 || maxSoFar > multiple) {
-          minHeap.emplace(multiple);
+          minHeap.push(multiple);
         }
 
         ++iter;
@@ -194,7 +194,7 @@ Number nthMultiple(long int n, std::vector<int> primes) {
 
   for (int i = 0; i < primes.size(); i++) {
     Number number(primes[i]);
-    minHeap.emplace(number);
+    minHeap.push(number);
   }
 
   Number maxSoFar(primes.back());

@@ -2180,6 +2180,12 @@ zip_list: $(BUILD_DIR)/zip_list
 
 .PHONY: zip_list
 
+# karat.cc
+karat: $(SRC_DIR)/karat.cc | $(BUILD_DIR)
+	$(CXX_COMPILER) $(CXX_FLAGS_DEBUG) -o $@ $<
+
+.PHONY: karat
+
 all: \
     $(BUILD_DIR)/a_b_sqrt2 \
     $(BUILD_DIR)/absent_value_array \
