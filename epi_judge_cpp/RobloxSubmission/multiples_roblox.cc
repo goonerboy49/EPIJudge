@@ -284,7 +284,6 @@ Number nthMultiple(long int n) {
       Number fiveMultiple = nextNumber;
       fiveMultiple.multiply(5);
       
-      
       insertionPos5 = getNextInsertionPos(fiveMultiples, insertionPos5, MAX_SIZE);
       fiveMultiples[insertionPos5.first][insertionPos5.second] = fiveMultiple;
 
