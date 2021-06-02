@@ -190,6 +190,7 @@ std::pair<int, int> getNextCandidatePos(std::vector<std::vector<Number>>& multip
   }
 
   multiples.erase(multiples.begin(), multiples.begin()+1);
+  multiples.shrink_to_fit();
   return {0,0};
 }
 
