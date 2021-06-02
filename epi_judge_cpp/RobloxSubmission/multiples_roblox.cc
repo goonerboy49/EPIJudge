@@ -175,6 +175,7 @@ std::ostream &operator<<(std::ostream &out, const Number &number) {
 int pruneUsed(std::vector<Number> &multiples, int currIdx, int remaining, int num) {
   if (multiples.size() > 1000000) {
     multiples.erase(multiples.begin(), multiples.begin() + currIdx);
+    multiples.shrink_to_fit();
     currIdx = 0;
   }
 
