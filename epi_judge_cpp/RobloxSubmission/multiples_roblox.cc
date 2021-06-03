@@ -15,32 +15,24 @@ public:
    *
    * @note val <= 9
    */
-  Number(int val) { _nums.push_back(val); }
+  Number(int val) { _nums.push_back(char('0' + val)); }
   Number() {}
+  ~Number() {
+    _nums.clear();
+    _nums.shrink_to_fit();
+  }
 
-//   Number &operator=(Number &&other) {
-//     if (this != &other) {
-//       _nums = other._nums;
-//     }
+  Number(const Number &o) : _nums(o._nums) {}
+  Number(Number &&o) : _nums(std::move(o._nums)) {}
+  Number &operator=(Number const &other) {
+    _nums = other._nums;
+    return *this;
+  }
 
-//     return *this;
-//   }
-
-//   Number(Number &&other) { _nums = other._nums; }
-
-//   Number(const Number &other) {
-//     std::copy(other._nums.begin(), other._nums.end(),
-//               std::back_inserter(_nums));
-//   }
-
-//   Number &operator=(const Number &other) {
-//     if (this != &other) {
-//       std::vector<int>().swap(_nums);
-//       std::copy(other._nums.begin(), other._nums.end(),
-//                 std::back_inserter(_nums));
-//     }
-//     return *this;
-//   }
+  Number &operator=(Number &&other) {
+    _nums = std::move(other._nums);
+    return *this;
+  }
 
   /**
    * @brief Multiplication operation on the existing number.
@@ -51,19 +43,14 @@ public:
     auto iter = _nums.rbegin();
     int carry = 0;
     while (iter != _nums.rend()) {
-      int curr = (*iter) * val;
+      int curr = (*iter - '0') * val;
       curr += carry;
-      if (curr >= 10) {
-        carry = curr / 10;
-        curr %= 10;
-      } else {
-        carry = 0;
-      }
-      *iter = curr;
+      *iter = curr % 10 + '0';
+      carry = curr / 10;
       ++iter;
     }
     if (carry != 0) {
-      _nums.insert(_nums.begin(), carry);
+      _nums.insert(_nums.begin(), carry + '0');
     }
   }
 
@@ -84,11 +71,12 @@ public:
    * @note Currently supports finding multiples of prime numbers {2,3,5}
    */
   bool isMultiple(int prime) const {
-    if (prime == 5 && (_nums.back() == 5 || _nums.back() == 0)) {
+    if (prime == 5 &&
+        ((_nums.back() - '0') == 5 || (_nums.back() - '0') == 0)) {
       return true;
     } else if (prime == 3 && isMultipleOf3()) {
       return true;
-    } else if (prime == 2 && _nums.back() % 2 == 0) {
+    } else if (prime == 2 && (_nums.back() - '0') % 2 == 0) {
       return true;
     }
 
@@ -102,35 +90,13 @@ public:
    * @return false otherwise.
    */
   bool isMultipleOf3() const {
-    int sum = std::accumulate(_nums.begin(), _nums.end(), 0);
+    auto sumFn = [](long int sum, char c) { return sum + (c - '0'); };
+    long int sum = std::accumulate(_nums.begin(), _nums.end(), 0, sumFn);
     return sum % 3 == 0;
   }
 
-  /**
-   * @brief > Operator to sort the minHeap in ascending order.
-   *
-   * @param b Other element in the minHeap.
-   * @return true
-   * @return false
-   */
-  bool operator==(Number const &b) const {
-    if (_nums.size() != b.size()) {
-      return false;
-    }
-
-    auto iter1 = _nums.begin();
-    auto iter2 = b.getBegin();
-
-    while (iter1 != _nums.end() && iter2 != b.getEnd() && *iter1 == *iter2) {
-      ++iter1;
-      ++iter2;
-    }
-
-    return iter1 == _nums.end() && iter2 == b.getEnd() ? true : false;
-  }
-
   bool operator<(Number const &b) const {
-    if (_nums.size() == 0 || b.size() == 0) {
+     if (_nums.size() == 0 || b.size() == 0) {
       return _nums.size() == 0 ? false : true;
     } else if (_nums.size() < b.size()) {
       return true;
@@ -149,17 +115,28 @@ public:
     }
   }
 
+  // Friend function to output the number
   friend std::ostream &operator<<(std::ostream &out, const Number &number);
 
 private:
-  std::vector<int>::const_iterator getBegin() const { return _nums.cbegin(); }
+  std::string::const_iterator getBegin() const { return _nums.cbegin(); }
 
-  std::vector<int>::const_iterator getEnd() const { return _nums.cend(); }
+  std::string::const_iterator getEnd() const { return _nums.cend(); }
 
-  // Digits that represent a number, most significant bit is present at the
-  // front. Storing individual digits as a node in the vector helps in
-  // representing a very large number.
-  std::vector<int> _nums;
+  /**
+   * Digits that represent a number, most significant bit is present at the
+   * front. Storing individual digits as a node in the vector helps in
+   * representing a very large number.
+   *
+   * @note Storage for a result of multiplication for a number
+   * with a high number of digits might seem to naturally fit the usecase for an
+   * std::list. However a list node in addition to the data also includes 2
+   * pointers to the next and previous nodes which causes memory in efficiency.
+   * More importantly for the problem at hand allocaiton of new nodes in the
+   * list causes Random memory causes causing a significant degradation in
+   * performance when compared to using a vector for the same number of digits.
+   */
+  std::string _nums;
 };
 
 std::ostream &operator<<(std::ostream &out, const Number &number) {
@@ -168,18 +145,24 @@ std::ostream &operator<<(std::ostream &out, const Number &number) {
     out << *iter;
     ++iter;
   }
-
   return out;
 }
 
-int pruneUsed(std::vector<Number> &multiples, int currIdx, int remaining, int num) {
-  if (multiples.size() > 1000000) {
-    multiples.erase(multiples.begin(), multiples.begin() + currIdx);
+/**
+ * @brief Shrink the size of the vector if the size is > MAX_SIZE
+ *
+ * @param multiples Vector of multiples of a prime number.
+ * @param front Index of first unprocessed number in @c multiples. This value is
+ * updated after the pruning operation.
+ * @param maxSize Vector size at which point pruning will be applied.
+ */
+void pruneUsed(std::vector<Number> &multiples, long int &front,
+               long int maxSize) {
+  if (multiples.size() >= maxSize) {
+    multiples.erase(multiples.begin(), multiples.begin() + front);
     multiples.shrink_to_fit();
-    currIdx = 0;
+    front = 0;
   }
-
-  return currIdx;
 }
 
 /**
@@ -190,81 +173,104 @@ int pruneUsed(std::vector<Number> &multiples, int currIdx, int remaining, int nu
  * @return Nth Number.
  */
 Number nthMultiple(long int n) {
-  int l2 = 0, l3 = 0, l5 = 0;
+  long int const MAX_SIZE = 1000000;
+  long int l2 = 0, l3 = 0, l5 = 0;
   std::vector<Number> twoMultiples;
   twoMultiples.emplace_back(std::move(Number(2)));
 
-  std::vector<Number> threeMultiples;
-  threeMultiples.emplace_back(std::move(Number(3)));
+  std::vector<Number> threeMultiples(1);
+  threeMultiples[0] = std::move(Number(3));
 
-  std::vector<Number> fiveMultiples;
-  fiveMultiples.emplace_back(std::move(Number(5)));
+  std::vector<Number> fiveMultiples(1);
+  fiveMultiples[0] = std::move(Number(5));
 
-  Number ans(0);
-  int count=0;
+  Number ans;
   Number maxSoFar(1);
-  for (int i = 1;; i++) {
-    Number nextNumber = std::min(std::min(l2 < twoMultiples.size() ? twoMultiples[l2] : Number(), l3 < threeMultiples.size() ? threeMultiples[l3]: Number()),
+  for (long int i = 1;; i++) {
+    //std::cout << "2 " << twoMultiples[l2] << " 3 " << threeMultiples[l3] << " 5 " << fiveMultiples[l5] << "\n";
+    Number nextNumber = std::min(std::min(l2 < twoMultiples.size() ? twoMultiples[l2] : Number(), l3 < threeMultiples.size() ? threeMultiples[l3] : Number()),
                                  l5 < fiveMultiples.size() ? fiveMultiples[l5]: Number());
+    //std::cout << "Next num " << nextNumber << "\n";                          
     if (i == n - 1) {
+      ////std::cout << "Found ans " << nextNumber;
       ans = nextNumber;
-      return nextNumber;
+      break;
     }
 
-    int unprocessed = twoMultiples.size() - l2 + threeMultiples.size() - l3 + fiveMultiples.size() - l5 - 1;
-    int remaining = n-i;
+    // One candidate is processed in this iteration
+    long int unprocessed = (twoMultiples.size() - l2) +
+                           (threeMultiples.size() - l3) +
+                           (fiveMultiples.size() - l5) - 1;
+    long int const remaining = n - i;
 
+    // Save the multiple of a prime in it's respective vector of candidates.
+    // Hence duplicate candidates are not generated in each of the vectors.
+    // For instance if the next candidate is 2, save 4 in twoMultiples, save 6
+    // in threeMultiples and save 10 in fiveMultiples. Note when 5 is the next
+    // chosen element, candidate 10 (5*2) is not added to the list of candidates
+    // as it was previously added to fiveMultiples when 2 was chosen in a
+    // previous iteration. Hence check if the number is a multiple starting from
+    // the highest prime number.
     if (nextNumber.isMultiple(5)) {
-      l5++;
+      ++l5;
       Number fiveMultiple = nextNumber;
       fiveMultiple.multiply(5);
+
+      // Add to the vector of candidates only if the number is lesser than the
+      // max number seen so far if the number of unprocessed candidates is
+      // lesser than the remaining numbers to the target.
+      // This optimization prevents increasing the size of vectors beyond the
+      // necessary candidates to reach the target n.
       if (unprocessed < remaining || fiveMultiple < maxSoFar) {
         maxSoFar = std::max(maxSoFar, fiveMultiple);
-        fiveMultiples.emplace_back(std::move(fiveMultiple));
+        fiveMultiples.emplace_back(fiveMultiple);
       }
     } else if (nextNumber.isMultiple(3)) {
       ++l3;
       Number threeMultiple = nextNumber;
-      Number fiveMultiple = nextNumber;
       threeMultiple.multiply(3);
-      fiveMultiple.multiply(5);
       if (unprocessed < remaining || threeMultiple < maxSoFar) {
         maxSoFar = std::max(threeMultiple, maxSoFar);
-        threeMultiples.emplace_back(std::move(threeMultiple));
+        threeMultiples.emplace_back(threeMultiple);
         unprocessed++;
+
+        Number fiveMultiple = nextNumber;
+        fiveMultiple.multiply(5);
         if (unprocessed < remaining || fiveMultiple < maxSoFar) {
           maxSoFar = std::max(fiveMultiple, maxSoFar);
-          fiveMultiples.emplace_back(std::move(fiveMultiple));
+          fiveMultiples.emplace_back(fiveMultiple);
         }
-      }      
+      }
     } else {
       ++l2;
       Number twoMultiple = nextNumber;
-      Number threeMultiple = nextNumber;
-      Number fiveMultiple = nextNumber;
       twoMultiple.multiply(2);
-      threeMultiple.multiply(3);
-      fiveMultiple.multiply(5);
 
       if (unprocessed < remaining || twoMultiple < maxSoFar) {
         maxSoFar = std::max(twoMultiple, maxSoFar);
-        twoMultiples.emplace_back(std::move(twoMultiple));
+        twoMultiples.emplace_back(twoMultiple);
         unprocessed++;
+
+        Number threeMultiple = nextNumber;
+        threeMultiple.multiply(3);
         if (unprocessed < remaining || threeMultiple < maxSoFar) {
           maxSoFar = std::max(threeMultiple, maxSoFar);
-          threeMultiples.emplace_back(std::move(threeMultiple));
+          threeMultiples.emplace_back(threeMultiple);
           unprocessed++;
+
+          Number fiveMultiple = nextNumber;
+          fiveMultiple.multiply(5);
           if (unprocessed < remaining || fiveMultiple < maxSoFar) {
             maxSoFar = std::max(fiveMultiple, maxSoFar);
-            fiveMultiples.emplace_back(std::move(fiveMultiple));
+            fiveMultiples.emplace_back(fiveMultiple);
           }
         }
       }
     }
 
-    l2 = pruneUsed(twoMultiples, l2, n-i, 2);
-    l3 = pruneUsed(threeMultiples, l3, n-i, 3);
-    l5 = pruneUsed(fiveMultiples, l5, n-i, 5);
+    pruneUsed(twoMultiples, l2, MAX_SIZE);
+    pruneUsed(threeMultiples, l3, MAX_SIZE);
+    pruneUsed(fiveMultiples, l5, MAX_SIZE);
   }
 
   return ans;
@@ -272,12 +278,11 @@ Number nthMultiple(long int n) {
 
 // Driver code
 int main(int argc, char *argv[]) {
-  ////std::cout << "Number of arguments " << argc;
   if (argc != 2) {
     std::cerr << "Invalid number of arguments " << std::endl;
     return -1;
   }
- std::cout << nthMultiple(strtol(argv[1], NULL, 10)) << std::endl;
+  std::cout << nthMultiple(strtol(argv[1], NULL, 10)) << std::endl;
 
   return 0;
 }
