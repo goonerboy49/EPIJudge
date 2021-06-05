@@ -62,6 +62,7 @@ public:
   int size() const { return _numStr.size(); }
 
   bool operator<(Number const &b) const {
+    // Handle an uninitialized Number
     if (_numStr.size() == 0 || b.size() == 0) {
       return _numStr.size() == 0 ? false : true;
     } else if (_numStr.size() < b.size()) {
@@ -92,7 +93,7 @@ private:
   /**
    * Digits that represent a number, most significant bit is present at the
    * front. Representing each digit as a character instead of an int helps in
-   * saving space for each digit in the number.
+   * saving space required to represent a digit in the number.
    *
    * @note Storage for a result of multiplication for a number
    * with a high number of digits might seem to naturally fit the usecase for an
@@ -109,44 +110,76 @@ std::ostream &operator<<(std::ostream &out, const Number &number) {
   return out << number._numStr;
 }
 
-/**
- * @brief Shrink the size of the vector if the size is > MAX_SIZE
- *
- * @param multiples Vector of multiples of a prime number.
- * @param front Index of first unprocessed number in @c multiples. This value is
- * updated after the pruning operation.
- * @param maxSize Vector size at which point pruning will be applied.
- */
-void pruneUsed(std::vector<int> &currIdxs,
-               std::vector<std::vector<Number>> &multiples, long int maxSize) {
-  for (int i = 0; i < currIdxs.size(); i++) {
-    if (multiples[i].size() >= maxSize) {
-      multiples[i].erase(multiples[i].begin(),
-                         multiples[i].begin() + currIdxs[i]);
-      multiples.shrink_to_fit();
-      currIdxs[i] = 0;
-    }
-  }
-
-  //// std::cout<< "Finished pruning " << std::endl;
-}
-
+// TODO Remove currNumIdx
 std::pair<Number, int>
-findMinCandidate(std::vector<int> const &currIdxs,
-                 std::vector<std::vector<Number>> const &multiples) {
+findMinCandidate(std::vector<long int> const& nextCandidateIdxs,
+                 std::vector<long int> const& nextInsertionIdxs,
+                 std::vector<std::vector<Number>> &multiples,
+                 long int &currNumIdx) {
   int minIdx = 0;
   Number minNumber = Number();
-  for (int i = 0; i < currIdxs.size(); i++) {
-    //// std::cout<< currIdxs[i] << " " << multiples[i].size() << std::endl;
-    Number const& nextCandidate = currIdxs[i] < multiples[i].size() ? multiples[i][currIdxs[i]] : Number();
-    // std::cout<< "Next candidate " << nextCandidate << std::endl;
+  for (int i = 0; i < nextCandidateIdxs.size(); i++) {
+    Number const& nextCandidate = nextCandidateIdxs[i] < nextInsertionIdxs[i]
+                                      ? multiples[i][nextCandidateIdxs[i]]
+                                      : Number(0);
+    //std::cout<< "next candidate " << nextCandidate << " " << nextCandidateIdxs[i] << " " << nextInsertionIdxs[i] << std::endl;                                      
     if (nextCandidate < minNumber) {
       minIdx = i;
-      minNumber = multiples[i][currIdxs[i]];
+      minNumber = multiples[i][nextCandidateIdxs[i]];
     }
+    //std::cout<< "minNumber " << minNumber << std::endl;
   }
 
   return {minNumber, minIdx};
+}
+
+void pruneProcessed(std::vector<std::vector<Number>> &multiples,
+                    std::vector<long int> &nextInsertionIdxs,
+                    std::vector<long int> &nextCandidateIdxs,
+                    long int &currNumIdx) {
+  for (int i = 0; i < multiples.size(); i++) {
+    if (nextInsertionIdxs[i] == multiples[i].capacity()) {
+      long int newReservation = multiples[i].capacity();
+      if (nextCandidateIdxs[i] > (multiples[i].capacity() / 2)) {
+        std::cout << "Pruning " << i << " of length " << nextCandidateIdxs[i] << " at index " << currNumIdx << std::endl;
+        multiples[i].erase(multiples[i].begin(),
+                           (multiples[i].begin() + nextCandidateIdxs[i]));
+        nextInsertionIdxs[i] -= nextCandidateIdxs[i];
+        nextCandidateIdxs[i] = 0;
+      } else {
+        newReservation *= 2;
+        std::cout << "Increasing the new reservation to " << newReservation << std::endl;
+      }
+      multiples[i].resize(newReservation);
+    }
+  }
+
+  int i = 0;
+  while(i < multiples.size() && nextCandidateIdxs[i] == nextInsertionIdxs[i]) {
+    std::cout << "Vector for " << i  << " will now be empty "<< std::endl;
+    i++;
+    // multiples[i].resize(0);
+    // multiples[i].shrink_to_fit();
+  }
+
+}
+
+long int getMaxReservation(long int n) {
+  if (n < 1000) {
+    return 10;
+  } else if (n < 10000) {
+    return 100;
+  } else if (n < 1000000) {
+    return 1000;
+  } else if (n < 1000000) {
+    return 10000;
+  } else if (n < 10000000) {
+    return 100000;
+  } else if (n < 100000000) {
+    return 1000000;
+  } else {
+    return 10000000;
+  }
 }
 
 /**
@@ -159,30 +192,81 @@ findMinCandidate(std::vector<int> const &currIdxs,
  * @return Nth Number.
  */
 Number nthMultiple(long int n, std::vector<int> primes) {
-  long int const MAX_SIZE = 1000000;
-  unsigned int const numPrimes = primes.size();
-  std::vector<int> currIdxs(numPrimes, 0);
+  /*
+   * Approach
+   *
+   * - Maintain a separate vector of Number objects for each prime number. These
+   * are the candidate Numbers for finding the next number that is factorable
+   * only from the prime numbers.
+   * - Find the least number from the first non processed candidate of each
+   * vector.
+   * - Generate multiples of primes higher than the vector from which the
+   * current element was chosen and append it to their respective vectors. This
+   * helps in eliminating duplicates in each of the vectors.
+   * - Finally pre reserve the individual vectors based on the value n. A basic
+   * reservation algorithm is implemented here, but should be tuned to the
+   * target. Reserving the vector size prevents costly re allocations when new
+   * elements are added to the vector.
+   *
+   * For instance for primes {2, 3, 5}
+   * Initial state
+   * multiples[0] - {2}
+   * multiples[1] - {3}
+   * multiples[2] - {5}
+   * nextCandidateIdxs {0,0,0}
+   *
+   * min(multiples[0][nextCandidateIdx[0]], .. ) is min(2,3,5) = 2
+   *
+   * multiples[0] - {2, 4}
+   * multiples[1] - {3, 6}
+   * multiples[2] - {5, 10}
+   * nextCandidateIdxs {1,0,0}
+   *
+   * min(multiples[0][nextCandidateIdx[0]], .. ) is min(4,3,5) = 3
+   *
+   * multiples[0] - {2, 4}
+   * multiples[1] - {3, 6, 9}
+   * multiples[2] - {5, 10, 15}
+   * nextCandidateIdxs {1,1,0}
+   *
+   * min(multiples[0][nextCandidateIdx[0]], .. ) is min(4,6,5) = 5
+   */
 
-  // TODO add more comments here as vector of multiples of each prime number.
-  std::vector<std::vector<Number>> multiples(numPrimes, std::vector<Number>(1));
+  long int const maxReserved = getMaxReservation(n);
+  unsigned int const numPrimes = primes.size();
+
+  // 2-D vector to store the generated multiples of each prime number. The
+  // vectors are sorted as each new multiple is added to the back of the vector.
+  std::vector<std::vector<Number>> multiples(numPrimes,
+                                             std::vector<Number>(maxReserved));
+  //std::cout << "I am here" << std::endl;
+
+  std::vector<long int> nextCandidateIdxs(numPrimes, 0);
+  std::vector<long int> nextInsertionIdxs(numPrimes, 1);
 
   for (int i = 0; i < primes.size(); i++) {
     multiples[i][0] = Number(primes[i]);
   }
 
-  Number ans;
+  Number ans(1);
   Number maxSoFar(1);
+
+  // Number of candidates generated that are not processed yet.
   long int unprocessed = primes.size();
-  for (long int i = 1;; i++) {
-    auto next = findMinCandidate(currIdxs, multiples);
+  for (long int i = 1; i < n; i++) {
+    auto next = findMinCandidate(nextCandidateIdxs, nextInsertionIdxs, multiples, i);
     Number nextNumber = next.first;
     int const nextPrimeNumberIdx = next.second;
+    //std::cout << "Next number " << nextNumber << std::endl;
     if (i == n - 1) {
       ans = nextNumber;
       break;
     }
-    ++currIdxs[nextPrimeNumberIdx];
-    // std::cout<< "Next number is " << nextNumber << " " << nextPrimeNumberIdx << std::endl;
+
+    pruneProcessed(multiples, nextInsertionIdxs, nextCandidateIdxs, i);
+
+    // Increment the index for the next candidate.
+    ++nextCandidateIdxs[nextPrimeNumberIdx];
 
     // One candidate is processed in this iteration.
     --unprocessed;
@@ -191,9 +275,8 @@ Number nthMultiple(long int n, std::vector<int> primes) {
     long int const remaining = n - i;
 
     // In order to eliminate duplicate elements being added to the vectors, only
-    // add multiples of this prime number and higher primes to their respective
-    // vectors. Hence start checking if the current number is in the list of
-    // primes in descending  order.
+    // add next least number multiplied higher primes to their respective
+    // vectors.
     //
     // For example if the current element is 5(i.e a multiple of 5), this
     // optimization prevents adding 10 and 15 to five's multiples which would
@@ -206,24 +289,24 @@ Number nthMultiple(long int n, std::vector<int> primes) {
     while (primeIdx < primes.size()) {
       Number nextMultiple = nextNumber;
       nextMultiple.multiply(primes[primeIdx]);
-      // std::cout<< "unprocessed " << unprocessed << " to " << remaining << " remaining -- max " << maxSoFar << " " << nextMultiple << std::endl;
-      // If the number of unprocessed numbers is greater than the remaining
-      // numbers to be processed to get to the target, then only add the newly
-      // calculated number if it is greater than the max element that is added
-      // to all lists at any point in time.
+      // Optimization - If the number of unprocessed numbers is greater than the
+      // remaining numbers to be processed to get to the target, then only add
+      // the newly calculated number if it is greater than the max element that
+      // is added to all lists at any point in time.
       if (unprocessed >= remaining && maxSoFar < nextMultiple) {
         break;
       }
 
       maxSoFar = std::max(maxSoFar, nextMultiple);
-      // std::cout<< "Adding " << nextMultiple << " to " << primeIdx << " max " << maxSoFar << std::endl;
-      
-      multiples[primeIdx].emplace_back(nextMultiple);
+      // // //std::cout<< "Adding " << nextMultiple << " to " << primeIdx << " max
+      // " << maxSoFar << std::endl;
+
+      multiples[primeIdx][nextInsertionIdxs[primeIdx]] = nextMultiple;
+      // Increment the next index for insertion.
+      ++nextInsertionIdxs[primeIdx];
       ++unprocessed;
       ++primeIdx;
     }
-
-    pruneUsed(currIdxs, multiples, MAX_SIZE);
   }
 
   return ans;
@@ -235,7 +318,7 @@ int main(int argc, char *argv[]) {
     std::cerr << "Invalid number of arguments " << std::endl;
     return -1;
   }
-  std::cout<< nthMultiple(strtol(argv[1], NULL, 10), {2, 3, 5}) << std::endl;
+  std::cout << nthMultiple(strtol(argv[1], NULL, 10), {2, 3, 5}) << std::endl;
 
   return 0;
 }
