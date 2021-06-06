@@ -20,7 +20,6 @@ $(BUILD_DIR)/multiples_profiler: $(SRC_DIR)/multiples_roblox.cc | $(BUILD_DIR)
 
 all: \
     $(BUILD_DIR)/multiples_debug \
-	$(BUILD_DIR)/multiples_profiler \
 	$(BUILD_DIR)/multiples
 
 clean:

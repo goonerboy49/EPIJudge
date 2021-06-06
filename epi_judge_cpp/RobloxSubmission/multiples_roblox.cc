@@ -19,16 +19,18 @@
  *
  * - std::vector<char> to represent a number with digits that cannot be stored
  * in in-built types.
- *    -A vector can be iterated for the  multiplicatiion
+ *    - A vector can be iterated for the  multiplicatiion
  * operation to generate prime multiples of the next least candidate chosen.
- *    -It also provides ability to increase the size as the number of digits
- * grow. -Lastly as compared to a std::list in a std::vector memory is
+ *    - It also provides ability to increase the size as the number of digits
+ * grow.
+ *    - Lastly as compared to a std::list in a std::vector memory is
  * contiguously allocated and hence delivers higher performance when iterating
  * over the digits during the multiplication operation. This was evidenced
  * especially at higher values of n when vector significantly outperformed a
  * list.
  *
- * -std::vector<Number> to store the generated candidate multiples factorable by
+ * - std::vector<Number> to store the generated candidate multiples factorable
+by
  * the given prime numbers. A std::priority_queue(heap) could also be used to
  * store the next multiples which provides ability to look up the next least
  * candidate in constant time, but at higher values of n it was observed that a
@@ -52,15 +54,17 @@
  * space.
  * - Prune used elements in the memoized multiples vector to reclaim space for
  * newer multiples that are generated.
+ * - Add a new candidate multiple to the generated multiples only if the new
+ * candidate is lesser than the max candidate generated so far among the
+ * unprocessed candidates.
  *
  *
  * Complexity:
- *
  * m - Number of prime numbers (In the originally stated problem where prime
  * numbers are {2,3,5} = 3)
  * n - Nth number requested
  *
- *  -Run time complexity:
+ *  - Run time complexity:
  *    O(n * m)
  *    The algorithm runs n iterations and in each iteration upto m new candidate
  * multiples are inserted to their respective vectors. Each insertion is
@@ -70,7 +74,7 @@
  * erasing a large portions of the vector containing used elements and resizing
  * the vector which adds to run time complexity(See limitations)
  *
- *  -Space complexity:
+ *  - Space complexity:
  *  O(m * getMaxReservation(n))
  *  A pre reserved vector is used to store the candidate multiples. The size of
  * the pre reserved vector for each prime number depends on the value of n. See
@@ -78,34 +82,132 @@
  *
  * Limitations:
  *
- * - Although this algorithm performs well at reasonable values of n
- *
+ * Although this algorithm performs well at reasonable values of n (See below at
+ * Runtimes) the algorithm suffers at very high values of n such as 4000000000
+ * due to the large amounts of multiples of highest prime number getting generated.
+ * It does not complete under a few mins.
+ * Perhaps a hybrid binary search algorithm could be used to optimize by skipping
+ * generation of all intermediary numbers to get to nth number in this sequence.
  *
  * Runtimes:
- * On Ubuntu VM with 4 cores and 6 GB main memory
+ * On Ubuntu VM with 4 cores and 6 GB memory
  *
- * time build/multiples 1500
-859963392
-build/multiples 1500  0.00s user 0.00s system 56% cpu 0.006 total
+ * /usr/bin/time -v build/multiples 1500 (Time elapsed 0.00s, peak memory used
+~ 3.5 MB) 859963392 User time (seconds): 0.00 System time (seconds): 0.00
+    Percent of CPU this job got: 88%
+    Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+    Average shared text size (kbytes): 0
+    Average unshared data size (kbytes): 0
+    Average stack size (kbytes): 0
+    Average total size (kbytes): 0
+    Maximum resident set size (kbytes): 3576
+    Average resident set size (kbytes): 0
+    Major (requiring I/O) page faults: 2
+    Minor (reclaiming a frame) page faults: 147
+    Voluntary context switches: 3
+    Involuntary context switches: 3
+    Swaps: 0
+    File system inputs: 56
+    File system outputs: 0
+    Socket messages sent: 0
+    Socket messages received: 0
+    Signals delivered: 0
+    Page size (bytes): 4096
+    Exit status: 0
  *
- * time build/multiples 1000000
+ * /usr/bin/time -v build/multiples 1000000 (Time elapsed 0.51s, peak memory
+used ~ 150 MB)
 519312780448388736089589843750000000000000000000000000000000000000000000000000000000
-build/multiples 1000000  0.40s user 0.08s system 99% cpu 0.480 total
+        Command being timed: "build/multiples 1000000"
+        User time (seconds): 0.51
+        System time (seconds): 0.18
+        Percent of CPU this job got: 96%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.72
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 150052
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 25
+        Minor (reclaiming a frame) page faults: 42783
+        Voluntary context switches: 24
+        Involuntary context switches: 36
+        Swaps: 0
+        File system inputs: 4144
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
  *
- * time build/multiples 10000000
+ * /usr/bin/time -v build/multiples 10000000 (Time elapsed 5.53s, peak memory
+used ~ 2 GB)
 162441050638304318232392153117595750351085388205966408633356724833252116013682098127
 901554107666015625000000000000000000000000000000000000000000000000000000000000000000
 00000000000000
-build/multiples 10000000  5.41s user 1.25s system 99% cpu 6.683 total
+build/multiples 10000000  5.53s user 1.25s system 99% cpu 6.683 total
+        User time (seconds): 5.53
+        System time (seconds): 1.17
+        Percent of CPU this job got: 99%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:06.73
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 2187076
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 21
+        Minor (reclaiming a frame) page faults: 604802
+        Voluntary context switches: 19
+        Involuntary context switches: 139
+        Swaps: 0
+        File system inputs: 3352
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
  *
- * time build/multiples 100000000
+ * /usr/bin/time -v build/multiples 100000000 (time elapsed 99 s, peak memory
+used ~ 4.5 GB)
 181401433096113635329533424306933545846696350337090979294625053667140351565931358183
 804678660542229646351449148549495502713754427213681221919720410943110751075070675731
 471915021942015682682026147816946818595136490836162942005416114894699679995595053651
 728120955680200739341006998503970330059031581136915184569121499899196013858752270494
 01605594538145621585911726469930727034807205200195312500
 build/multiples 100000000  99.17s user 3.44s system 98% cpu 1:44.27 total
+        User time (seconds): 99.17s
+        System time (seconds): 2.76
+        Percent of CPU this job got: 98%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 1:37.17
+        Average shared text size (kbytes): 0
+        Average unshared data size (kbytes): 0
+        Average stack size (kbytes): 0
+        Average total size (kbytes): 0
+        Maximum resident set size (kbytes): 4754612
+        Average resident set size (kbytes): 0
+        Major (requiring I/O) page faults: 24
+        Minor (reclaiming a frame) page faults: 1792628
+        Voluntary context switches: 160
+        Involuntary context switches: 5983
+        Swaps: 0
+        File system inputs: 3760
+        File system outputs: 0
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
  */
+
+class Number;
+using CharVector = std::vector<char>;
+using IndexVector = std::vector<long int>;
+using NumberVector = std::vector<Number>;
+using Multiples = std::vector<NumberVector>;
 
 /**
  * Represents a number.
@@ -120,8 +222,8 @@ public:
    * @note val <= 9
    */
   Number(int val) {
-    _numStr.reserve(1);
-    _numStr.push_back(char('0' + val));
+    _numStr.resize(1);
+    _numStr[0] = char('0' + val);
   }
   Number() {}
   ~Number() {
@@ -149,18 +251,21 @@ public:
   void multiply(int val) {
     auto iter = _numStr.begin();
     int carry = 0;
+    int i = 0;
     while (iter != _numStr.end()) {
       int curr = (*iter - '0') * val;
       curr += carry;
       *iter = curr % 10 + '0';
       carry = curr / 10;
       ++iter;
+      ++i;
     }
     if (carry != 0) {
+      // TODO fix this
       // Use reserve here instead of resize as resize grows the vector size by
       // double.
-      _numStr.reserve(_numStr.capacity() + 1);
-      _numStr.push_back(char(carry + '0'));
+      _numStr.resize(_numStr.capacity() + 1);
+      _numStr[i] = (char(carry + '0'));
     }
   }
 
@@ -197,13 +302,11 @@ public:
   friend std::ostream &operator<<(std::ostream &out, const Number &number);
 
 private:
-  std::vector<char>::const_reverse_iterator getRbegin() const {
+  CharVector::const_reverse_iterator getRbegin() const {
     return _numStr.crbegin();
   }
 
-  std::vector<char>::const_reverse_iterator getRend() const {
-    return _numStr.crend();
-  }
+  CharVector::const_reverse_iterator getRend() const { return _numStr.crend(); }
 
   /**
    * Digits that represent a number
@@ -226,15 +329,14 @@ private:
    * the list causes Random memory causes causing a significant degradation in
    * performance when compared to using a vector for the same number of digits.
    */
-  std::vector<char> _numStr;
+  CharVector _numStr;
 };
 
 long int getMaxReservation(long int n);
-std::pair<Number, int>
-findMinCandidate(std::vector<long int> const &nextCandidateIdxs,
-                 std::vector<long int> const &nextInsertionIdxs,
-                 std::vector<std::vector<Number>> &multiples);
-std::pair<long int, long int> insert(std::vector<Number> &multiples,
+std::pair<Number, int> findMinCandidate(IndexVector const &nextCandidateIdxs,
+                                        IndexVector const &nextInsertionIdxs,
+                                        Multiples &multiples);
+std::pair<long int, long int> insert(NumberVector &multiples,
                                      long int nextInsertionIdx,
                                      long int nextCandidateIdx,
                                      Number nextMultiple);
@@ -294,10 +396,9 @@ Number nthMultiple(long int n, std::vector<int> primes) {
 
   // 2-D vector to store the generated multiples of each prime number. The
   // vectors are sorted as each new multiple is added to the back of the vector.
-  std::vector<std::vector<Number>> multiples(numPrimes,
-                                             std::vector<Number>(maxReserved));
-  std::vector<long int> nextCandidateIdxs(numPrimes, 0);
-  std::vector<long int> nextInsertionIdxs(numPrimes, 1);
+  Multiples multiples(numPrimes, NumberVector(maxReserved));
+  IndexVector nextCandidateIdxs(numPrimes, 0);
+  IndexVector nextInsertionIdxs(numPrimes, 1);
 
   for (int i = 0; i < primes.size(); i++) {
     multiples[i][0] = Number(primes[i]);
@@ -371,10 +472,9 @@ Number nthMultiple(long int n, std::vector<int> primes) {
  * @return std::pair<Number, int> Returns the next minimum multiple and the
  * index of the vector it was picked from.
  */
-std::pair<Number, int>
-findMinCandidate(std::vector<long int> const &nextCandidateIdxs,
-                 std::vector<long int> const &nextInsertionIdxs,
-                 std::vector<std::vector<Number>> &multiples) {
+std::pair<Number, int> findMinCandidate(IndexVector const &nextCandidateIdxs,
+                                        IndexVector const &nextInsertionIdxs,
+                                        Multiples &multiples) {
   int minIdx = 0;
   Number minNumber = Number();
   for (int i = 0; i < nextCandidateIdxs.size(); i++) {
@@ -402,9 +502,9 @@ findMinCandidate(std::vector<long int> const &nextCandidateIdxs,
  * multiples.
  * @param nextMultiple Next multiple to insert.
  * @return std::pair<long int, long int> Returns the updated values of @c
- * nextInsertionIdx and @c nextCandidateIdx
+ * nextInsertionIdx and @c nextCandidateIdx.
  */
-std::pair<long int, long int> insert(std::vector<Number> &multiples,
+std::pair<long int, long int> insert(NumberVector &multiples,
                                      long int nextInsertionIdx,
                                      long int nextCandidateIdx,
                                      Number nextMultiple) {
