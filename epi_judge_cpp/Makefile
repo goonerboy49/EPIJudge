@@ -2180,6 +2180,15 @@ zip_list: $(BUILD_DIR)/zip_list
 
 .PHONY: zip_list
 
+# alien_dictionary.cc
+
+$(BUILD_DIR)/alien_dictionary: $(SRC_DIR)/alien_dictionary.cc | $(BUILD_DIR)
+	$(CXX_COMPILER) $(CXX_FLAGS_DEBUG) -o $@ $<
+alien_dictionary: $(BUILD_DIR)/alien_dictionary
+	$< $(PROGRAM_ARGS)
+
+.PHONY: alien_dictionary
+
 all: \
     $(BUILD_DIR)/a_b_sqrt2 \
     $(BUILD_DIR)/absent_value_array \
